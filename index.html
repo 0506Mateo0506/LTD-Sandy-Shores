@@ -226,13 +226,13 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div class="login-field"><label class="login-label">Mot de passe</label><input type="password" class="login-input" id="login-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" onclick="doLogin()">ACCÉDER AU PANNEAU →</button>
     <div class="login-error" id="login-error">Identifiant ou mot de passe incorrect</div>
-    <div class="login-hint">Compte patron : patron / ltd2024</div>
+    <div class="login-hint" style="display:none"></div>
   </div>
 </div>
 
 <div id="app">
   <div class="topbar">
-    <div class="topbar-logo">
+    <div class="topbar-logo" onclick="showPage('dashboard',document.querySelector('.nav-item'))" style="cursor:pointer" title="Tableau de bord">
       <div class="topbar-logo-icon">🏢</div>
       <div><div class="topbar-logo-name">LTD CORP</div><div class="topbar-sub">Panneau de gestion</div></div>
     </div>
@@ -241,7 +241,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div class="topbar-right">
       <span class="service-count" id="service-count">👥 0 en service</span>
       <span class="status-pill online" id="status-pill" onclick="toggleStatus()">● EN SERVICE</span>
-      <div class="user-badge">
+      <div class="user-badge" onclick="showPage('compte',document.querySelector('[onclick*=\'compte\']'))" title="Mon Compte">
         <div class="user-avatar" id="user-avatar">P</div>
         <div class="user-info"><div class="user-name" id="user-display">Patron</div><div class="user-grade" id="user-grade-display">Patron</div></div>
       </div>
@@ -362,7 +362,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             </div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="card-title">📋 Journal du jour</div><button class="btn btn-danger btn-sm" onclick="clearSales()">🗑 Vider</button></div>
+            <div class="card-header"><div class="card-title">📋 Journal du jour</div><button class="btn btn-danger btn-sm" id="clear-sales-btn" onclick="clearSales()">🗑 Vider</button></div>
             <div style="overflow-y:auto;max-height:580px"><table><thead><tr><th>H.</th><th>PRODUIT(S)</th><th>Q</th><th>TOTAL</th><th>VENDEUR</th><th></th></tr></thead><tbody id="sales-tbody"></tbody><tfoot><tr style="font-weight:700"><td colspan="3" style="padding:12px 16px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px">TOTAL</td><td style="padding:12px 16px;color:var(--accent);font-family:'Syne',sans-serif;font-size:16px;font-weight:800" id="total-ca-display">0 $</td><td colspan="2"></td></tr></tfoot></table></div>
           </div>
         </div>
@@ -384,7 +384,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
       <!-- STOCK -->
       <div class="page" id="page-stock">
-        <div class="page-header"><div><div class="page-title">Gestion Stock</div><div class="page-sub">Inventaire · <span id="rupture-count-label" style="color:var(--red)">0 ruptures</span></div></div><button class="btn btn-outline" onclick="exportStockCSV()">⬇ Export CSV</button></div>
+        <div class="page-header"><div><div class="page-title">Gestion Stock</div><div class="page-sub">Inventaire · <span id="rupture-count-label" style="color:var(--red)">0 ruptures</span></div></div></div>
         <div class="search-row"><div class="search-wrap"><input type="text" class="search-input" id="stock-search" placeholder="Rechercher un produit..." oninput="renderStock()"></div><button class="filter-chip active" onclick="setStockFilter('all',this)">Tous</button><button class="filter-chip" onclick="setStockFilter('rupture',this)">❌ Ruptures</button><button class="filter-chip" onclick="setStockFilter('low',this)">⚠ Faibles</button><button class="filter-chip" onclick="setStockFilter('ok',this)">✓ OK</button></div>
         <div class="card"><div class="table-wrap"><table><thead><tr><th>PRODUIT</th><th>CATÉGORIE</th><th>QTÉ</th><th>SEUIL</th><th>PRIX VENTE</th><th>VALEUR STOCK</th><th>STATUT</th><th>ACTION</th></tr></thead><tbody id="stock-tbody"></tbody></table></div></div>
       </div>
@@ -417,8 +417,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="page-header">
           <div><div class="page-title">Rapports & Analyses</div><div class="page-sub">Performances · Ventes · Stock · Équipe</div></div>
           <div style="display:flex;gap:10px">
-            <button class="btn btn-outline" onclick="exportCSV()">⬇ Export Ventes</button>
-            <button class="btn btn-primary" onclick="window.print()">🖨 Imprimer</button>
           </div>
         </div>
         <!-- KPIs synthèse -->
@@ -464,7 +462,6 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div style="display:flex;gap:10px;align-items:center">
             <span class="compta-period" id="compta-period">—</span>
             <button class="btn btn-outline" id="edit-bonus-btn" style="display:none" onclick="openEditBonusModal()">✏ Modifier Bonus</button>
-            <button class="btn btn-outline" onclick="exportComptaCSV()">⬇ Export CSV</button>
           </div>
         </div>
         <div class="stats-row" style="margin-bottom:24px">
@@ -477,7 +474,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="card">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>VENDEUR</th><th>GRADE</th><th>% VENTE</th><th>NB VENTES</th><th>CA ($)</th><th>GAINS VENTES</th><th>BONUS GRADE</th><th>PAYE FINAL</th></tr></thead>
+              <thead><tr><th>VENDEUR</th><th>GRADE</th><th>% VENTE</th><th>NB VENTES</th><th>CA ($)</th><th>GAINS VENTES</th><th>BONUS GRADE</th><th>RUNS</th><th>RÉMUN. RUNS</th><th>PAYE FINAL</th></tr></thead>
               <tbody id="compta-table"></tbody>
             </table>
           </div>
@@ -578,7 +575,12 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div class="form-grid">
       <div class="form-group" style="grid-column:1/-1"><label class="form-label">Nom du produit</label><input type="text" class="form-input" id="np-name" placeholder="Nom"></div>
       <div class="form-group"><label class="form-label">Prix ($)</label><input type="number" class="form-input" id="np-price" placeholder="0" min="0"></div>
-      <div class="form-group"><label class="form-label">Catégorie</label><input type="text" class="form-input" id="np-cat" placeholder="🎒 Articles"></div>
+      <div class="form-group"><label class="form-label">Catégorie</label>
+        <select class="form-select" id="np-cat-select" onchange="onCatSelectChange(this.value)">
+          <option value="">— Choisir une catégorie —</option>
+        </select>
+        <input type="text" class="form-input" id="np-cat" placeholder="🎒 Articles" style="margin-top:6px;display:none">
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="document.getElementById('add-product-overlay').classList.remove('open')">Annuler</button>
@@ -596,6 +598,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="form-group"><label class="form-label">Vendeur(s)</label><input type="text" class="form-input" id="run-members" placeholder="Ex : Jean, Marie"></div>
       <div class="form-group"><label class="form-label">Heure départ</label><input type="time" class="form-input" id="run-time"></div>
       <div class="form-group" style="grid-column:1/-1"><label class="form-label">Notes</label><input type="text" class="form-input" id="run-notes" placeholder="Informations supplémentaires..."></div>
+      <div class="form-group" style="grid-column:1/-1"><label class="form-label">📷 Photos du run</label><input type="file" id="run-photos" accept="image/*" multiple class="form-input" style="padding:6px"><div class="photo-preview" id="run-photo-preview"></div></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="document.getElementById('run-modal-overlay').classList.remove('open')">Annuler</button>
@@ -658,6 +661,7 @@ async function loadAll(){
   if(!stockData){stockData=PRODUCTS.map(p=>({name:p.name,qty:0,seuil:5,sellPrice:p.price,cat:p.cat}));await saveStock();}
   try{const r=await window.storage.get('ltd_runs');if(r)runs=JSON.parse(r.value);}catch(e){runs=[];}
   try{const r=await window.storage.get('ltd_service',true);if(r)serviceUsers=new Set(JSON.parse(r.value));}catch(e){serviceUsers=new Set();}
+  try{const r=await window.storage.get('ltd_service_log',true);if(r)serviceLog=JSON.parse(r.value);}catch(e){serviceLog=[];}
   document.getElementById('loading-overlay').style.display='none';
   document.getElementById('login-page').style.display='flex';
 }
@@ -684,6 +688,9 @@ function doLogin(){
   const acc=accounts.find(a=>a.id===id&&a.pw===pw);
   if(!acc){document.getElementById('login-error').style.display='block';return;}
   currentUser=acc;
+  // Mettre à jour lastLogin
+  acc.lastLogin=new Date().toISOString();
+  saveAccounts();
   document.getElementById('login-page').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('user-avatar').textContent=acc.name.charAt(0).toUpperCase();
@@ -693,14 +700,22 @@ function doLogin(){
   const isAdmin=acc.grade>=5; // Co-Patron ou Patron
   document.getElementById('admin-nav-btn').style.display=isAdmin?'flex':'none';
   document.getElementById('admin-section').style.display=isAdmin?'block':'none';
-  // Auto set en service
-  serviceUsers.add(acc.id);saveServiceUsers();
+  // NE PAS mettre en service automatiquement — garder le statut précédent
+  // Si première connexion ou pas de statut sauvegardé => hors service par défaut
+  const savedStatus=localStorage.getItem('ltd_status_'+acc.id);
+  if(savedStatus==='online'){serviceUsers.add(acc.id);}else{serviceUsers.delete(acc.id);}
+  saveServiceUsers();
   updateServiceUI();
   initApp();
 }
 
 function doLogout(){
-  if(currentUser){serviceUsers.delete(currentUser.id);saveServiceUsers();}
+  if(currentUser){
+    // Sauvegarder le statut actuel
+    const isOnline=serviceUsers.has(currentUser.id);
+    localStorage.setItem('ltd_status_'+currentUser.id, isOnline?'online':'offline');
+    serviceUsers.delete(currentUser.id);saveServiceUsers();
+  }
   currentUser=null;
   document.getElementById('app').style.display='none';
   document.getElementById('login-page').style.display='flex';
@@ -708,17 +723,29 @@ function doLogout(){
   document.getElementById('login-error').style.display='none';
 }
 
+let serviceLog=[];
+async function saveServiceLog(){try{await window.storage.set('ltd_service_log',JSON.stringify(serviceLog),true);}catch(e){}}
+
 function toggleStatus(){
   if(!currentUser)return;
   const pill=document.getElementById('status-pill');
-  if(serviceUsers.has(currentUser.id)){
+  const isOn=serviceUsers.has(currentUser.id);
+  if(isOn){
     serviceUsers.delete(currentUser.id);
     pill.className='status-pill offline';pill.textContent='● HORS SERVICE';
+    localStorage.setItem('ltd_status_'+currentUser.id,'offline');
   }else{
     serviceUsers.add(currentUser.id);
     pill.className='status-pill online';pill.textContent='● EN SERVICE';
+    localStorage.setItem('ltd_status_'+currentUser.id,'online');
   }
+  // Logger l'événement
+  const now=new Date();
+  serviceLog.push({type:isOn?'off':'on',name:currentUser.name,id:currentUser.id,time:now.toTimeString().slice(0,5),date:now.toISOString()});
+  if(serviceLog.length>200)serviceLog=serviceLog.slice(-200);
+  saveServiceLog();
   saveServiceUsers();updateServiceUI();
+  renderRecentTable();
 }
 
 function updateServiceUI(){
@@ -742,7 +769,12 @@ function initApp(){
   if(document.getElementById('edit-grades-btn'))document.getElementById('edit-grades-btn').style.display=isAdmin?'inline-flex':'none';
   if(document.getElementById('edit-bonus-btn'))document.getElementById('edit-bonus-btn').style.display=isAdmin?'inline-flex':'none';
   if(document.getElementById('add-prod-btn'))document.getElementById('add-prod-btn').style.display=isAdmin?'inline-flex':'none';
+  // Masquer "Vider" et bouton supprimer vente pour non-admin
+  const clearBtn=document.getElementById('clear-sales-btn');
+  if(clearBtn)clearBtn.style.display=isAdmin?'inline-flex':'none';
   updateServiceUI();
+  // Polling toutes les 5 secondes pour sync en temps réel
+  startPolling();
 }
 
 function setTimeNow(){const t=document.getElementById('sale-time');if(t)t.value=new Date().toTimeString().slice(0,5);}
@@ -788,7 +820,7 @@ function renderTop5(){
 
 function renderEmpDash(){
   const el=document.getElementById('emp-dash-table');if(!el)return;
-  el.innerHTML=accounts.filter(a=>a.grade<6).map(acc=>{
+  el.innerHTML=accounts.map(acc=>{
     const g=GRADES[acc.grade];
     const empSales=sales.filter(s=>s.emp===acc.id);
     const ca=empSales.reduce((a,s)=>a+s.total,0);
@@ -817,18 +849,31 @@ function renderTopEmp(){
 function renderRecentTable(){
   const el=document.getElementById('recent-table');if(!el)return;
   const isAdmin=currentUser&&currentUser.grade>=5;
-  // Show/hide detail column
   const detailHead=document.getElementById('detail-col-head');
   if(detailHead)detailHead.style.display=isAdmin?'':'none';
-  if(!sales.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:24px">Aucune vente</td></tr>';return;}
-  el.innerHTML=[...sales].reverse().slice(0,20).map((s,ri)=>{
-    const realIdx=sales.length-1-ri;
+  // Mélanger ventes + événements de service
+  let events=[];
+  sales.forEach((s,realIdx)=>{
     const acc=accounts.find(a=>a.id===s.emp);
     const productLabel=Array.isArray(s.items)?s.items.map(i=>i.name+(i.qty>1?` ×${i.qty}`:'')).join(', '):s.product;
     const totalQty=Array.isArray(s.items)?s.items.reduce((a,i)=>a+i.qty,0):s.qty;
-    const detailBtn=isAdmin?`<td><button class="btn btn-outline btn-sm" onclick="openSaleDetail(${realIdx})">🔍 Voir</button></td>`:'';
-    return`<tr><td style="color:var(--text2);font-family:'DM Mono',monospace">${s.time}</td><td style="font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${productLabel}</td><td>${totalQty}</td><td style="color:var(--accent);font-weight:700">${fmt(s.total)}</td><td style="color:${s.benef>=0?'var(--green)':'var(--red)'};font-weight:700">${fmt(s.benef)}</td><td style="color:var(--text2);font-size:12px">${acc?acc.name:s.emp}</td>${detailBtn}</tr>`;
-  }).join('');
+    const detailBtn=isAdmin?`<td><button class="btn btn-outline btn-sm" onclick="openSaleDetail(${realIdx})">🔍 Voir</button></td>`:'<td></td>';
+    events.push({
+      time:s.time,date:s.date||'',
+      html:`<tr><td style="color:var(--text2);font-family:'DM Mono',monospace">${s.time}</td><td style="font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🧾 ${productLabel}</td><td>${totalQty}</td><td style="color:var(--accent);font-weight:700">${fmt(s.total)}</td><td style="color:${s.benef>=0?'var(--green)':'var(--red)'};font-weight:700">${fmt(s.benef)}</td><td style="color:var(--text2);font-size:12px">${acc?acc.name:s.emp}</td>${detailBtn}</tr>`
+    });
+  });
+  // Ajouter événements de service depuis serviceLog
+  (serviceLog||[]).forEach(ev=>{
+    events.push({
+      time:ev.time,date:ev.date||'',
+      html:`<tr style="background:rgba(34,197,94,0.04)"><td style="color:var(--text2);font-family:'DM Mono',monospace">${ev.time}</td><td style="font-weight:600;color:${ev.type==='on'?'var(--green)':'var(--text2)'}">${ev.type==='on'?'🟢 Prise de service':'🔴 Fin de service'}</td><td>—</td><td>—</td><td>—</td><td style="color:var(--text2);font-size:12px">${ev.name}</td><td></td></tr>`
+    });
+  });
+  events.sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+  if(!events.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:24px">Aucun événement</td></tr>';return;}
+  el.innerHTML=events.slice(0,30).map(e=>e.html).join('');
+  document.getElementById('recent-count').textContent=events.length+' événements';
 }
 
 function openSaleDetail(idx){
@@ -863,8 +908,8 @@ function renderMonCompte(){
   document.getElementById('mc-avatar').textContent=acc.name.charAt(0).toUpperCase();
   document.getElementById('mc-name').textContent=acc.name;
   document.getElementById('mc-grade-badge').innerHTML=`<span class="grade-badge ${g.class}">${g.icon} ${g.name}</span>`;
-  const joinDate=acc.joinDate?new Date(acc.joinDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}):'—';
-  document.getElementById('mc-since').textContent='Membre depuis le '+joinDate;
+  const joinDate=acc.joinDate?new Date(acc.joinDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  document.getElementById('mc-since').textContent='Compte créé le '+joinDate;
   const mySales=sales.filter(s=>s.emp===acc.id);
   const myCA=mySales.reduce((a,s)=>a+s.total,0);
   const myGains=Math.round(myCA*g.commission/100);
@@ -920,18 +965,23 @@ function renderComptaTable(){
   if(comptaGradeFilter!=='ALL')filtered=filtered.filter(a=>a.grade===parseInt(comptaGradeFilter));
   filtered.sort((a,b)=>b.grade-a.grade);
   let totalSalaires=0,totalCA=0,totalVentes=0,actifs=0;
+  const RUN_REMUN=90000;
   const rows=filtered.map(acc=>{
     const g=GRADES[acc.grade];
     const empSales=sales.filter(s=>s.emp===acc.id);
     const ca=empSales.reduce((a,s)=>a+s.total,0);
     const gainsVentes=Math.round(ca*g.commission/100);
     const bonus=g.bonus||0;
-    const payeFinal=gainsVentes+bonus;
+    // Runs effectués par cet employé (par nom)
+    const empRuns=runs.filter(r=>r.status==='done'&&(r.createdBy===acc.name||(r.members&&r.members.split(',').map(m=>m.trim()).includes(acc.name))));
+    const nbRuns=empRuns.length;
+    const remuRuns=nbRuns*RUN_REMUN;
+    const payeFinal=gainsVentes+bonus+remuRuns;
     totalSalaires+=payeFinal;totalCA+=ca;totalVentes+=empSales.length;
-    if(empSales.length>0)actifs++;
-    return`<tr><td style="font-weight:600">${acc.name}</td><td><span class="grade-badge ${g.class}">${g.icon} ${g.name}</span></td><td style="color:var(--text2)">${g.commission}%</td><td style="color:var(--blue);font-weight:600">${empSales.length}</td><td style="color:var(--accent);font-weight:700">${fmt(ca)}</td><td style="color:var(--green);font-weight:700">${fmt(gainsVentes)}</td><td style="color:var(--purple);font-weight:700">${fmt(bonus)}</td><td class="paye-final">${fmt(payeFinal)}</td></tr>`;
+    if(empSales.length>0||nbRuns>0)actifs++;
+    return`<tr><td style="font-weight:600">${acc.name}</td><td><span class="grade-badge ${g.class}">${g.icon} ${g.name}</span></td><td style="color:var(--text2)">${g.commission}%</td><td style="color:var(--blue);font-weight:600">${empSales.length}</td><td style="color:var(--accent);font-weight:700">${fmt(ca)}</td><td style="color:var(--green);font-weight:700">${fmt(gainsVentes)}</td><td style="color:var(--purple);font-weight:700">${fmt(bonus)}</td><td style="color:var(--blue);font-weight:600">${nbRuns}</td><td style="color:var(--green);font-weight:600">${fmt(remuRuns)}</td><td class="paye-final">${fmt(payeFinal)}</td></tr>`;
   });
-  document.getElementById('compta-table').innerHTML=rows.join('')||'<tr><td colspan="8" style="text-align:center;color:var(--text2);padding:20px">Aucun résultat</td></tr>';
+  document.getElementById('compta-table').innerHTML=rows.join('')||'<tr><td colspan="10" style="text-align:center;color:var(--text2);padding:20px">Aucun résultat</td></tr>';
   document.getElementById('compta-total-salaires').textContent=fmt(totalSalaires);
   document.getElementById('compta-total-ca').textContent=fmt(totalCA);
   document.getElementById('compta-total-ventes').textContent=totalVentes;
@@ -1016,11 +1066,11 @@ function populateEmpSelect(){
   if(!hiddenSel||!display)return;
   const isAdmin=currentUser&&currentUser.grade>=5;
   if(isAdmin){
-    // Admin can pick any employee
+    // Admin can pick any employee (tous les comptes)
     const empSelectGroup=document.getElementById('emp-select-group');
     if(empSelectGroup){
-      empSelectGroup.innerHTML=`<label class="form-label">Vendeur</label><select class="form-select" id="sale-emp" onchange="updateSalePreview()">${accounts.filter(a=>a.grade<6).map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}</select>`;
-      if(currentUser&&currentUser.grade<6)document.getElementById('sale-emp').value=currentUser.id;
+      empSelectGroup.innerHTML=`<label class="form-label">Vendeur</label><select class="form-select" id="sale-emp" onchange="updateSalePreview()">${accounts.map(a=>`<option value="${a.id}">${a.name} — ${GRADES[a.grade].name}</option>`).join('')}</select>`;
+      if(currentUser)document.getElementById('sale-emp').value=currentUser.id;
     }
   }else{
     // Non-admin: locked to own account
@@ -1092,8 +1142,7 @@ async function addSale(){
   });
   await saveStock();
   renderSalesTable();updateKPIs();renderEmpDash();renderTopEmp();renderRecentTable();
-  // Also refresh mon compte if it's open
-  renderMonCompte();
+  renderMonCompte();renderComptaTable();
   showToast('✓ Vente enregistrée — '+fmt(total));
   // Reset
   saleItems=[{name:'',price:0,qty:1}];salePhotos=[];
@@ -1105,13 +1154,15 @@ async function addSale(){
 
 function renderSalesTable(){
   const tbody=document.getElementById('sales-tbody');if(!tbody)return;
+  const isAdmin=currentUser&&currentUser.grade>=5;
   if(!sales.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:24px">Aucune vente</td></tr>';return;}
   tbody.innerHTML=[...sales].reverse().map((s,ri)=>{
     const realIdx=sales.length-1-ri;
     const acc=accounts.find(a=>a.id===s.emp);
     const productLabel=Array.isArray(s.items)?s.items.map(i=>i.name+(i.qty>1?` ×${i.qty}`:'')).join(', '):s.product;
     const totalQty=Array.isArray(s.items)?s.items.reduce((a,i)=>a+i.qty,0):s.qty;
-    return`<tr><td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:12px">${s.time}</td><td style="font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${productLabel}</td><td>${totalQty}</td><td style="color:var(--accent);font-weight:700">${fmt(s.total)}</td><td style="color:var(--text2);font-size:12px">${acc?acc.name:s.emp}</td><td><button class="btn btn-danger btn-sm" onclick="deleteSale(${realIdx})" style="padding:4px 10px">✕</button></td></tr>`;
+    const delBtn=isAdmin?`<button class="btn btn-danger btn-sm" onclick="deleteSale(${realIdx})" style="padding:4px 10px">✕</button>`:'';
+    return`<tr><td style="color:var(--text2);font-family:'DM Mono',monospace;font-size:12px">${s.time}</td><td style="font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${productLabel}</td><td>${totalQty}</td><td style="color:var(--accent);font-weight:700">${fmt(s.total)}</td><td style="color:var(--text2);font-size:12px">${acc?acc.name:s.emp}</td><td>${delBtn}</td></tr>`;
   }).join('');
   updateKPIs();
 }
@@ -1140,24 +1191,27 @@ function renderStock(){
   const tbody=document.getElementById('stock-tbody');if(!tbody)return;
   tbody.innerHTML=filtered.map(s=>{
     const i=stockData.indexOf(s);
-    let badge,bc,manualOverride='';
+    let badge,bc;
     if(s.manualStatus==='rupture'){badge='❌ Rupture';bc='badge-red';}
     else if(s.manualStatus==='faible'){badge='⚠ Faible';bc='badge-yellow';}
     else if(s.manualStatus==='ok'){badge='✓ OK';bc='badge-green';}
     else if(s.qty===0){badge='❌ Rupture';bc='badge-red';}
     else if(s.qty<=s.seuil){badge='⚠ Faible';bc='badge-yellow';}
     else{badge='✓ OK';bc='badge-green';}
-    const seuilCell=isAdmin
-      ?`<input type="number" class="stock-input" value="${s.seuil}" min="0" onchange="updateSeuil(${i},this.value)" title="Modifier le seuil">`
-      :`${s.seuil}`;
+    // Seul admin peut modifier qty, seuil, statut, prix
+    const qtyCell=isAdmin?`<input type="number" class="stock-input" value="${s.qty}" min="0" onchange="updateQty(${i},this.value)">`:`<span style="font-family:'DM Mono',monospace">${s.qty}</span>`;
+    const seuilCell=isAdmin?`<input type="number" class="stock-input" value="${s.seuil}" min="0" onchange="updateSeuil(${i},this.value)" title="Modifier le seuil">`:s.seuil;
+    const priceCell=isAdmin?`<input type="number" class="stock-input" value="${s.sellPrice}" min="0" onchange="updatePrice(${i},this.value)" title="Modifier le prix" style="width:90px">`:`<span style="color:var(--accent);font-weight:700">${fmtN(s.sellPrice)} $</span>`;
     const manualCell=isAdmin?`<select class="form-select" style="width:110px;padding:4px 8px;font-size:12px" onchange="updateManualStatus(${i},this.value)"><option value="">Auto</option><option value="ok" ${s.manualStatus==='ok'?'selected':''}>✓ OK</option><option value="faible" ${s.manualStatus==='faible'?'selected':''}>⚠ Faible</option><option value="rupture" ${s.manualStatus==='rupture'?'selected':''}>❌ Rupture</option></select>`:'';
-    return`<tr><td style="font-weight:600">${s.name}</td><td style="font-size:12px;color:var(--text2)">${s.cat}</td><td><input type="number" class="stock-input" value="${s.qty}" min="0" onchange="updateQty(${i},this.value)"></td><td>${seuilCell}</td><td style="color:var(--accent);font-weight:700">${fmtN(s.sellPrice)} $</td><td style="color:var(--text2)">${fmtN(s.qty*s.sellPrice)} $</td><td><span class="badge ${bc}">${badge}</span></td><td style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${manualCell}<button class="btn btn-outline btn-sm" onclick="restock(${i},5)">+5</button><button class="btn btn-outline btn-sm" onclick="restock(${i},10)">+10</button></td></tr>`;
+    const restockBtns=isAdmin?`<button class="btn btn-outline btn-sm" onclick="restock(${i},5)">+5</button><button class="btn btn-outline btn-sm" onclick="restock(${i},10)">+10</button>`:'';
+    return`<tr><td style="font-weight:600">${s.name}</td><td style="font-size:12px;color:var(--text2)">${s.cat}</td><td>${qtyCell}</td><td>${seuilCell}</td><td>${priceCell}</td><td style="color:var(--text2)">${fmtN(s.qty*s.sellPrice)} $</td><td><span class="badge ${bc}">${badge}</span></td><td style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">${manualCell}${restockBtns}</td></tr>`;
   }).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--text2);padding:20px">Aucun résultat</td></tr>';
 }
 
 function setStockFilter(f,btn){stockFilter=f;document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderStock();}
 async function updateQty(i,v){stockData[i].qty=parseInt(v)||0;await saveStock();updateKPIs();}
 async function updateSeuil(i,v){stockData[i].seuil=parseInt(v)||0;await saveStock();renderStock();}
+async function updatePrice(i,v){stockData[i].sellPrice=parseInt(v)||0;const prod=PRODUCTS.find(p=>p.name===stockData[i].name);if(prod)prod.price=stockData[i].sellPrice;await saveStock();await saveProducts();renderStock();showToast('✓ Prix mis à jour');}
 async function updateManualStatus(i,v){stockData[i].manualStatus=v||null;await saveStock();renderStock();}
 async function restock(i,n){stockData[i].qty+=n;await saveStock();renderStock();updateKPIs();showToast(`✓ +${n} ${stockData[i].name}`);}
 
@@ -1185,12 +1239,29 @@ function quickAddToSale(name,price){
 }
 
 function openAddProductModal(){
+  // Pré-remplir les catégories existantes
+  const catSel=document.getElementById('np-cat-select');
+  if(catSel){
+    const existingCats=[...new Set(PRODUCTS.map(p=>p.cat))];
+    catSel.innerHTML='<option value="">— Choisir une catégorie —</option>'+
+      existingCats.map(c=>`<option value="${c}">${c}</option>`).join('')+
+      '<option value="__new__">✏ Nouvelle catégorie...</option>';
+    document.getElementById('np-cat').style.display='none';
+    document.getElementById('np-cat').value='';
+  }
   document.getElementById('add-product-overlay').classList.add('open');
+}
+function onCatSelectChange(val){
+  const inp=document.getElementById('np-cat');
+  if(val==='__new__'){inp.style.display='block';inp.focus();}
+  else{inp.style.display='none';inp.value=val;}
 }
 async function addNewProduct(){
   const name=document.getElementById('np-name').value.trim();
   const price=parseInt(document.getElementById('np-price').value)||0;
-  const cat=document.getElementById('np-cat').value.trim()||'🎒 Articles';
+  const catSel=document.getElementById('np-cat-select');
+  let cat=catSel?.value==='__new__'||!catSel?.value?document.getElementById('np-cat').value.trim():catSel.value;
+  if(!cat)cat='🎒 Articles';
   if(!name){showToast('⚠ Entrez un nom',true);return;}
   if(PRODUCTS.find(p=>p.name===name)){showToast('⚠ Produit déjà existant',true);return;}
   PRODUCTS.push({name,price,cat});
@@ -1224,8 +1295,10 @@ function renderEmployees(){
     const empSales=sales.filter(s=>s.emp===acc.id);
     const ca=empSales.reduce((a,s)=>a+s.total,0);
     const gains=Math.round(ca*g.commission/100);
+    const joinDate=acc.joinDate?new Date(acc.joinDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+    const lastLoginStr=isAdmin&&acc.lastLogin?`<div style="font-size:11px;color:var(--text3);margin-top:2px">Vu: ${new Date(acc.lastLogin).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`:'';
     const clickable=isAdmin?`onclick="openEmpProfile('${acc.id}')" style="cursor:pointer"`:'';
-    return`<div class="card" style="padding:0" ${clickable}><div style="padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px"><div style="width:48px;height:48px;background:linear-gradient(135deg,var(--accent),#b86010);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#000">${acc.name.charAt(0)}</div><div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800">${acc.name}</div><span class="grade-badge ${g.class}">${g.icon} ${g.name}</span></div>${isAdmin?'<span style="margin-left:auto;font-size:11px;color:var(--text3)">🔍 Profil</span>':''}</div><div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px"><div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text)">${empSales.length}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Ventes</div></div><div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent)">${fmtN(ca)}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">CA ($)</div></div><div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green)">${fmtN(gains)}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Gains (${g.commission}%)</div></div><div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--blue)">${g.commission}%</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Commission</div></div></div></div>`;
+    return`<div class="card" ${clickable}><div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap"><div style="width:44px;height:44px;min-width:44px;background:linear-gradient(135deg,var(--accent),#b86010);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#000">${acc.name.charAt(0)}</div><div style="min-width:0;flex:1"><div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${acc.name}</div><span class="grade-badge ${g.class}">${g.icon} ${g.name}</span>${lastLoginStr}</div>${isAdmin?'<span style="font-size:11px;color:var(--text3);flex-shrink:0">🔍 Profil</span>':''}</div><div style="padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text)">${empSales.length}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Ventes</div></div><div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent)">${fmtN(ca)}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">CA ($)</div></div><div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--green)">${fmtN(gains)}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Gains (${g.commission}%)</div></div><div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--blue)">${g.commission}%</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Commission</div></div></div></div>`;
   }).join('')||'<div style="color:var(--text2);padding:20px">Aucun vendeur</div>';
 }
 
@@ -1451,7 +1524,9 @@ async function addAccount(){
   if(accounts.find(a=>a.id===id)){showToast('⚠ Identifiant déjà utilisé',true);return;}
   // Only Patron can create Co-Patron or Patron grade accounts
   if(grade>=5&&currentUser?.grade!==6){showToast('⚠ Seul le Patron peut créer ce grade',true);return;}
-  accounts.push({id,pw,name,grade,joinDate:new Date().toISOString().slice(0,10)});
+  // Date et heure exacte de création
+  const now=new Date();
+  accounts.push({id,pw,name,grade,joinDate:now.toISOString(),status:'offline'});
   await saveAccounts();
   renderAdmin();
   document.getElementById('new-login-id').value='';document.getElementById('new-login-pw').value='';document.getElementById('new-login-name').value='';
@@ -1461,10 +1536,9 @@ async function addAccount(){
 function populateGradeEmpSelect(){
   const sel=document.getElementById('grade-emp-select');if(!sel)return;
   const isPatron=currentUser?.grade===6;
-  // Co-Patron can't touch Patron accounts
   const eligible=accounts.filter(a=>{
-    if(!isPatron&&a.grade>=5)return false; // Co-Patron can't touch Co-Patron or Patron
-    if(!isPatron&&a.id===currentUser?.id)return false;
+    if(!isPatron&&a.grade>=5&&a.id!==currentUser?.id)return false; // Co-Patron ne peut pas toucher d'autres Co-Patron ou Patron
+    if(!isPatron&&a.id===currentUser?.id)return false; // Co-Patron ne peut pas changer son propre rôle
     return true;
   });
   sel.innerHTML='<option value="">— Choisir un vendeur —</option>'+eligible.map(a=>`<option value="${a.id}">${a.name} — ${GRADES[a.grade].name}</option>`).join('');
@@ -1486,8 +1560,10 @@ async function applyGrade(){
   const grade=parseInt(document.getElementById('grade-select')?.value);
   if(!empId){showToast('⚠ Sélectionner un vendeur',true);return;}
   const acc=accounts.find(a=>a.id===empId);if(!acc)return;
-  // Patron protection
-  if(acc.grade===6&&currentUser?.grade!==6){showToast('⚠ Seul le Patron peut modifier son propre grade',true);return;}
+  // Co-Patron ne peut pas retirer son propre rôle de co-patron
+  if(acc.id===currentUser?.id&&currentUser?.grade===5&&grade<5){showToast('⚠ Vous ne pouvez pas retirer votre propre rôle Co-Patron',true);return;}
+  // Patron protection (uniquement le Patron peut modifier grade 6, sauf lui-même)
+  if(acc.grade===6&&acc.id!==currentUser?.id&&currentUser?.grade!==6){showToast('⚠ Seul le Patron peut modifier le grade d\'un autre Patron',true);return;}
   if(grade>=5&&currentUser?.grade!==6){showToast('⚠ Seul le Patron peut attribuer ce grade',true);return;}
   acc.grade=grade;await saveAccounts();
   renderAdmin();renderEmployees();renderEmpDash();
@@ -1501,19 +1577,30 @@ function renderRuns(){
   document.getElementById('run-done').textContent=runs.filter(r=>r.status==='done').length;
   document.getElementById('run-active').textContent=runs.filter(r=>r.status==='active').length;
   const el=document.getElementById('run-grid');if(!el)return;
-  if(!runs.length){el.innerHTML='<div style="color:var(--text2);padding:20px;grid-column:1/-1">Aucun run enregistré. Cliquez sur "+ Nouveau Run" pour commencer.</div>';return;}
-  el.innerHTML=[...runs].reverse().map((r,ri)=>{
-    const realIdx=runs.length-1-ri;
+  const isAdmin=currentUser&&currentUser.grade>=5;
+  // Filtrer : non-admin voit seulement ses propres runs
+  const visibleRuns=isAdmin?[...runs].reverse():[...runs].reverse().filter(r=>r.createdBy===currentUser?.name);
+  if(!visibleRuns.length){el.innerHTML='<div style="color:var(--text2);padding:20px;grid-column:1/-1">Aucun run enregistré. Cliquez sur "+ Nouveau Run" pour commencer.</div>';return;}
+  el.innerHTML=visibleRuns.map((r)=>{
+    const realIdx=runs.indexOf(r);
     const statusColor=r.status==='done'?'var(--green)':r.status==='active'?'var(--accent)':'var(--text2)';
-    const statusLabel=r.status==='done'?'✅ Terminé':r.status==='active'?'🟡 En cours':'⬜ En attente';
+    const statusLabel=r.status==='done'?'✅ Terminé':r.status==='active'?'🟠 En cours de traitement':'⬜ En attente';
+    // Photos
+    const photosHtml=r.photos&&r.photos.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${r.photos.map(p=>`<img src="${p}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">`).join('')}</div>`:'';
+    const canDelete=isAdmin;
+    const canFinish=isAdmin&&r.status!=='done';
+    const canStart=r.status==='pending'&&!isAdmin;
     return`<div class="run-card">
       <div class="run-card-title">🚗 ${r.desc||'Run sans titre'} <span style="margin-left:auto;font-size:12px;color:${statusColor}">${statusLabel}</span></div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">👥 ${r.members||'—'} · ⏰ ${r.time||'—'}</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">👤 Créé par: ${r.createdBy||'—'} · ⏰ ${r.time||'—'}</div>
+      ${r.members?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px">👥 ${r.members}</div>`:''}
       ${r.notes?`<div style="font-size:12px;color:var(--text2);background:var(--bg);border-radius:6px;padding:8px;margin-bottom:10px">${r.notes}</div>`:''}
+      ${photosHtml}
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${r.status!=='done'?`<button class="btn btn-primary btn-sm" onclick="setRunStatus(${realIdx},'done')">✅ Terminer</button>`:''}
-        ${r.status==='pending'?`<button class="btn btn-outline btn-sm" onclick="setRunStatus(${realIdx},'active')">▶ Démarrer</button>`:''}
-        <button class="btn btn-danger btn-sm" onclick="deleteRun(${realIdx})">✕</button>
+        ${canFinish?`<button class="btn btn-primary btn-sm" onclick="setRunStatus(${realIdx},'done')">✅ Terminer</button>`:''}
+        ${r.status==='pending'&&!isAdmin?`<button class="btn btn-outline btn-sm" onclick="setRunStatus(${realIdx},'active')">▶ Démarrer</button>`:''}
+        ${r.status==='pending'&&isAdmin?`<button class="btn btn-outline btn-sm" onclick="setRunStatus(${realIdx},'active')">▶ Démarrer</button>`:''}
+        ${canDelete?`<button class="btn btn-danger btn-sm" onclick="deleteRun(${realIdx})">✕</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1530,17 +1617,69 @@ async function createRun(){
   const time=document.getElementById('run-time').value;
   const notes=document.getElementById('run-notes').value.trim();
   if(!desc){showToast('⚠ Entrez une description',true);return;}
-  runs.push({desc,members,time,notes,status:'pending',createdBy:currentUser?.name||'',date:new Date().toISOString()});
+  const run={desc,members,time,notes,status:'pending',createdBy:currentUser?.name||'',date:new Date().toISOString(),photos:runPhotos.length?[...runPhotos]:[]};
+  runs.push(run);
   await saveRuns();
   document.getElementById('run-modal-overlay').classList.remove('open');
   document.getElementById('run-desc').value='';document.getElementById('run-members').value='';document.getElementById('run-notes').value='';
+  document.getElementById('run-photos').value='';document.getElementById('run-photo-preview').innerHTML='';
+  runPhotos=[];
   renderRuns();showToast('✓ Run créé');
 }
+let runPhotos=[];
+document.addEventListener('change',e=>{
+  if(e.target?.id==='run-photos'){
+    const files=[...e.target.files];
+    const preview=document.getElementById('run-photo-preview');if(!preview)return;
+    preview.innerHTML='';runPhotos=[];
+    files.forEach(f=>{
+      const reader=new FileReader();
+      reader.onload=ev=>{runPhotos.push(ev.target.result);const img=document.createElement('img');img.src=ev.target.result;img.className='photo-thumb';preview.appendChild(img);};
+      reader.readAsDataURL(f);
+    });
+  }
+});
 
 async function setRunStatus(idx,status){runs[idx].status=status;await saveRuns();renderRuns();}
 async function deleteRun(idx){runs.splice(idx,1);await saveRuns();renderRuns();}
 
-// ===== EXPORT =====
+// ===== TEMPS RÉEL - POLLING =====
+let pollingInterval=null;
+let lastSalesLen=0,lastAccountsLen=0,lastServiceStr='';
+
+async function pollUpdates(){
+  if(!currentUser)return;
+  try{
+    // Sync statuts service
+    const r=await window.storage.get('ltd_service',true);
+    if(r){
+      const newStr=r.value;
+      if(newStr!==lastServiceStr){lastServiceStr=newStr;serviceUsers=new Set(JSON.parse(newStr));updateServiceUI();}
+    }
+    // Sync ventes
+    const rs=await window.storage.get('ltd_sales');
+    if(rs){const newSales=JSON.parse(rs.value);if(newSales.length!==lastSalesLen){lastSalesLen=newSales.length;sales=newSales;updateKPIs();renderRecentTable();if(document.getElementById('page-caisse').classList.contains('active'))renderSalesTable();if(document.getElementById('page-compte').classList.contains('active'))renderMonCompte();if(document.getElementById('page-comptabilite').classList.contains('active'))renderComptaTable();if(document.getElementById('page-employes').classList.contains('active'))renderEmployees();}}
+    // Sync comptes
+    const ra=await window.storage.get('ltd_accounts');
+    if(ra){const newAccounts=JSON.parse(ra.value);if(newAccounts.length!==lastAccountsLen){lastAccountsLen=newAccounts.length;accounts=newAccounts;renderEmpDash();}}
+    // Sync runs
+    const rr=await window.storage.get('ltd_runs');
+    if(rr){const newRuns=JSON.parse(rr.value);if(newRuns.length!==runs.length){runs=newRuns;if(document.getElementById('page-run').classList.contains('active'))renderRuns();}}
+    // Sync service log
+    const rl=await window.storage.get('ltd_service_log',true);
+    if(rl){serviceLog=JSON.parse(rl.value);}
+  }catch(e){}
+}
+
+function startPolling(){
+  if(pollingInterval)clearInterval(pollingInterval);
+  lastSalesLen=sales.length;lastAccountsLen=accounts.length;
+  pollingInterval=setInterval(pollUpdates,5000);
+}
+
+// Bloquer l'impression
+window.addEventListener('beforeprint',e=>{e.preventDefault();e.stopPropagation();showToast('⚠ Impression désactivée',true);},true);
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='p'){e.preventDefault();showToast('⚠ Impression désactivée',true);}});
 function exportCSV(){
   if(!sales.length){showToast('Aucune vente à exporter',true);return;}
   const rows=['Heure,Produit,Qté,Total,Commission,Bénéfice,Vendeur',...sales.map(s=>{
@@ -1585,3 +1724,4 @@ loadAll();
 </script>
 </body>
 </html>
+
