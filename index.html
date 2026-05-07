@@ -213,6 +213,16 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   <div style="font-size:12px;color:var(--text2)">Chargement...</div>
 </div>
 
+<!-- Bannière configuration Firebase (visible si non configuré) -->
+<div id="firebase-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1e2535;border-top:2px solid #e8a020;padding:14px 24px;z-index:9998;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+  <span style="font-size:18px">🔥</span>
+  <div style="flex:1;min-width:200px">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;color:#e8a020;font-size:14px">Firebase non configuré — données locales uniquement</div>
+    <div style="font-size:12px;color:#94a3b8;margin-top:2px">Pour synchroniser sur tous les appareils, configurez Firebase dans le code (voir commentaires en début de script)</div>
+  </div>
+  <button onclick="document.getElementById('firebase-banner').style.display='none'" style="background:none;border:1px solid #475569;color:#94a3b8;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">Ignorer</button>
+</div>
+
 <div id="login-page" style="display:none">
   <div class="login-bg-grid"></div>
   <div class="login-card">
@@ -642,28 +652,182 @@ const DEFAULT_ACCOUNTS=[
   {id:'employe5',pw:'emp5',name:'Employé 5',grade:1,joinDate:'2024-01-01'},
 ];
 
-async function saveAccounts(){try{await window.storage.set('ltd_accounts',JSON.stringify(accounts));}catch(e){}}
-async function saveSales(){try{await window.storage.set('ltd_sales',JSON.stringify(sales));}catch(e){}}
-async function saveStock(){try{await window.storage.set('ltd_stock',JSON.stringify(stockData));}catch(e){}}
-async function saveGrades(){try{await window.storage.set('ltd_grades',JSON.stringify(GRADES));}catch(e){}}
-async function saveProducts(){try{await window.storage.set('ltd_products',JSON.stringify(PRODUCTS));}catch(e){}}
-async function saveRuns(){try{await window.storage.set('ltd_runs',JSON.stringify(runs));}catch(e){}}
-async function saveServiceUsers(){try{await window.storage.set('ltd_service',JSON.stringify([...serviceUsers]),true);}catch(e){}}
+// ===== FIREBASE CONFIG =====
+// 1. Allez sur https://console.firebase.google.com
+// 2. Créez un projet (ex: "ltd-corp")
+// 3. Dans "Realtime Database" → Créez une base de données (mode test)
+// 4. Dans Paramètres du projet → Config web → Copiez les valeurs ci-dessous
+const FIREBASE_CONFIG = {
+ apiKey: "AIzaSyAA9A5Dq9_fWGa35hqPRAiHuuW5rcP4Mjs",
+  authDomain: "ltd-sandy-shores.firebaseapp.com",
+  databaseURL: "https://ltd-sandy-shores-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "ltd-sandy-shores",
+  storageBucket: "ltd-sandy-shores.firebasestorage.app",
+  messagingSenderId: "519833959484",
+  appId: "1:519833959484:web:6c1c57e1afb7ef827e5739"
+};
+// Règles Firebase à mettre dans "Realtime Database → Règles":
+// { "rules": { ".read": true, ".write": true } }
 
+let db = null; // Firebase database reference
+
+async function initFirebase() {
+  try {
+    // Charger Firebase SDK dynamiquement
+    if (!window.firebase) {
+      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');
+    }
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    return true;
+  } catch(e) {
+    console.warn('Firebase indisponible, utilisation localStorage:', e);
+    return false;
+  }
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+// ===== COUCHE DE STOCKAGE UNIVERSELLE =====
+// Fonctionne avec Firebase (si configuré) OU localStorage (fallback)
+async function dbSet(key, value) {
+  const json = JSON.stringify(value);
+  localStorage.setItem('ltd_' + key, json); // Toujours sauvegarder en local aussi
+  if (db) {
+    try { await db.ref('ltd/' + key).set(json); } catch(e) {}
+  }
+}
+
+async function dbGet(key) {
+  if (db) {
+    try {
+      const snap = await db.ref('ltd/' + key).once('value');
+      if (snap.exists()) return JSON.parse(snap.val());
+    } catch(e) {}
+  }
+  // Fallback localStorage
+  const local = localStorage.getItem('ltd_' + key);
+  return local ? JSON.parse(local) : null;
+}
+
+function dbListen(key, callback) {
+  if (db) {
+    db.ref('ltd/' + key).on('value', snap => {
+      if (snap.exists()) {
+        try { callback(JSON.parse(snap.val())); } catch(e) {}
+      }
+    });
+  }
+}
+
+// ===== FONCTIONS SAVE =====
+async function saveAccounts(){await dbSet('accounts', accounts);}
+async function saveSales(){await dbSet('sales', sales);}
+async function saveStock(){await dbSet('stock', stockData);}
+async function saveGrades(){await dbSet('grades', GRADES);}
+async function saveProducts(){await dbSet('products', PRODUCTS);}
+async function saveRuns(){await dbSet('runs', runs);}
+async function saveServiceUsers(){await dbSet('service', [...serviceUsers]);}
+
+// ===== CHARGEMENT PRINCIPAL =====
 async function loadAll(){
-  try{const r=await window.storage.get('ltd_grades');if(r)GRADES=JSON.parse(r.value);}catch(e){}
-  try{const r=await window.storage.get('ltd_products');if(r)PRODUCTS=JSON.parse(r.value);}catch(e){}
-  try{const r=await window.storage.get('ltd_accounts');accounts=r?JSON.parse(r.value):[...DEFAULT_ACCOUNTS];}catch(e){accounts=[...DEFAULT_ACCOUNTS];}
-  if(!accounts||!accounts.length){accounts=[...DEFAULT_ACCOUNTS];await saveAccounts();}
-  accounts.forEach(a=>{if(!a.joinDate)a.joinDate=new Date().toISOString().slice(0,10);});
-  try{const r=await window.storage.get('ltd_sales');sales=r?JSON.parse(r.value):[];}catch(e){sales=[];}
-  try{const r=await window.storage.get('ltd_stock');stockData=r?JSON.parse(r.value):null;}catch(e){stockData=null;}
-  if(!stockData){stockData=PRODUCTS.map(p=>({name:p.name,qty:0,seuil:5,sellPrice:p.price,cat:p.cat}));await saveStock();}
-  try{const r=await window.storage.get('ltd_runs');if(r)runs=JSON.parse(r.value);}catch(e){runs=[];}
-  try{const r=await window.storage.get('ltd_service',true);if(r)serviceUsers=new Set(JSON.parse(r.value));}catch(e){serviceUsers=new Set();}
-  try{const r=await window.storage.get('ltd_service_log',true);if(r)serviceLog=JSON.parse(r.value);}catch(e){serviceLog=[];}
-  document.getElementById('loading-overlay').style.display='none';
-  document.getElementById('login-page').style.display='flex';
+  document.getElementById('loading-overlay').querySelector('div:last-child').textContent = 'Connexion à la base de données...';
+
+  await initFirebase();
+
+  // Charger toutes les données
+  const [g, p, a, s, st, r, su, sl] = await Promise.all([
+    dbGet('grades'), dbGet('products'), dbGet('accounts'), dbGet('sales'),
+    dbGet('stock'), dbGet('runs'), dbGet('service'), dbGet('service_log')
+  ]);
+
+  if (g) GRADES = g;
+  if (p) PRODUCTS = p;
+
+  accounts = a || [...DEFAULT_ACCOUNTS];
+  if (!accounts.length) { accounts = [...DEFAULT_ACCOUNTS]; await saveAccounts(); }
+  accounts.forEach(ac => { if (!ac.joinDate) ac.joinDate = new Date().toISOString(); });
+
+  sales = s || [];
+  runs = r || [];
+  serviceUsers = new Set(su || []);
+  serviceLog = sl || [];
+
+  if (!st) {
+    stockData = PRODUCTS.map(p => ({name:p.name,qty:0,seuil:5,sellPrice:p.price,cat:p.cat}));
+    await saveStock();
+  } else {
+    stockData = st;
+  }
+
+  // Initialiser les listeners temps réel Firebase
+  setupRealtimeListeners();
+
+  // Afficher bannière si Firebase pas configuré
+  if (!db || FIREBASE_CONFIG.apiKey === 'REMPLACER_PAR_VOTRE_API_KEY') {
+    const banner = document.getElementById('firebase-banner');
+    if (banner) banner.style.display = 'flex';
+  }
+
+  document.getElementById('loading-overlay').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+// ===== LISTENERS TEMPS RÉEL =====
+function setupRealtimeListeners() {
+  if (!db) return; // Pas de Firebase = pas de temps réel inter-appareils
+  dbListen('sales', newData => {
+    if (!currentUser) return;
+    sales = newData;
+    updateKPIs(); renderRecentTable(); renderEmpDash();
+    if (document.getElementById('page-caisse').classList.contains('active')) renderSalesTable();
+    if (document.getElementById('page-compte').classList.contains('active')) renderMonCompte();
+    if (document.getElementById('page-comptabilite').classList.contains('active')) renderComptaTable();
+    if (document.getElementById('page-employes').classList.contains('active')) renderEmployees();
+  });
+  dbListen('accounts', newData => {
+    if (!currentUser) return;
+    accounts = newData;
+    // Mettre à jour currentUser avec les données fraîches
+    const fresh = accounts.find(a => a.id === currentUser.id);
+    if (fresh) currentUser = fresh;
+    if (document.getElementById('page-caisse').classList.contains('active')) populateEmpSelect();
+    if (document.getElementById('page-employes').classList.contains('active')) renderEmployees();
+    if (document.getElementById('page-admin').classList.contains('active')) renderAdmin();
+    renderEmpDash();
+  });
+  dbListen('runs', newData => {
+    if (!currentUser) return;
+    runs = newData;
+    if (document.getElementById('page-run').classList.contains('active')) renderRuns();
+  });
+  dbListen('service', newData => {
+    if (!currentUser) return;
+    serviceUsers = new Set(newData);
+    updateServiceUI();
+  });
+  dbListen('service_log', newData => {
+    serviceLog = newData || [];
+    if (currentUser && document.getElementById('page-dashboard').classList.contains('active')) renderRecentTable();
+  });
+  dbListen('stock', newData => {
+    if (!currentUser) return;
+    stockData = newData;
+    if (document.getElementById('page-stock').classList.contains('active')) renderStock();
+  });
+  dbListen('grades', newData => {
+    if (!currentUser) return;
+    GRADES = newData;
+    if (document.getElementById('page-employes').classList.contains('active')) renderEmployees();
+    if (document.getElementById('page-comptabilite').classList.contains('active')) renderComptaTable();
+  });
 }
 
 function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('fr-FR');}
@@ -700,13 +864,13 @@ function doLogin(){
   const isAdmin=acc.grade>=5; // Co-Patron ou Patron
   document.getElementById('admin-nav-btn').style.display=isAdmin?'flex':'none';
   document.getElementById('admin-section').style.display=isAdmin?'block':'none';
-  // NE PAS mettre en service automatiquement — garder le statut précédent
-  // Si première connexion ou pas de statut sauvegardé => hors service par défaut
+  // Statut : garder le précédent ou hors service par défaut
   const savedStatus=localStorage.getItem('ltd_status_'+acc.id);
   if(savedStatus==='online'){serviceUsers.add(acc.id);}else{serviceUsers.delete(acc.id);}
-  saveServiceUsers();
+  await saveServiceUsers();
   updateServiceUI();
   initApp();
+  startPolling();
 }
 
 function doLogout(){
@@ -724,7 +888,22 @@ function doLogout(){
 }
 
 let serviceLog=[];
-async function saveServiceLog(){try{await window.storage.set('ltd_service_log',JSON.stringify(serviceLog),true);}catch(e){}}
+async function saveServiceLog(){await dbSet('service_log', serviceLog);}
+
+// Polling léger (fallback si pas Firebase, ou pour détecter changements non captés)
+let pollingInterval=null;
+function startPolling(){
+  // Si Firebase est actif, les listeners temps réel suffisent
+  // Sinon on fait un polling localStorage toutes les 3s
+  if(db)return;
+  if(pollingInterval)clearInterval(pollingInterval);
+  pollingInterval=setInterval(async()=>{
+    if(!currentUser)return;
+    const ns=await dbGet('sales');if(ns&&ns.length!==sales.length){sales=ns;updateKPIs();renderRecentTable();renderEmpDash();if(document.getElementById('page-caisse').classList.contains('active'))renderSalesTable();}
+    const na=await dbGet('accounts');if(na&&na.length!==accounts.length){accounts=na;renderEmpDash();if(document.getElementById('page-caisse').classList.contains('active'))populateEmpSelect();}
+    const nr=await dbGet('runs');if(nr&&nr.length!==runs.length){runs=nr;if(document.getElementById('page-run').classList.contains('active'))renderRuns();}
+  },3000);
+}
 
 function toggleStatus(){
   if(!currentUser)return;
@@ -773,8 +952,6 @@ function initApp(){
   const clearBtn=document.getElementById('clear-sales-btn');
   if(clearBtn)clearBtn.style.display=isAdmin?'inline-flex':'none';
   updateServiceUI();
-  // Polling toutes les 5 secondes pour sync en temps réel
-  startPolling();
 }
 
 function setTimeNow(){const t=document.getElementById('sale-time');if(t)t.value=new Date().toTimeString().slice(0,5);}
@@ -1642,40 +1819,6 @@ document.addEventListener('change',e=>{
 
 async function setRunStatus(idx,status){runs[idx].status=status;await saveRuns();renderRuns();}
 async function deleteRun(idx){runs.splice(idx,1);await saveRuns();renderRuns();}
-
-// ===== TEMPS RÉEL - POLLING =====
-let pollingInterval=null;
-let lastSalesLen=0,lastAccountsLen=0,lastServiceStr='';
-
-async function pollUpdates(){
-  if(!currentUser)return;
-  try{
-    // Sync statuts service
-    const r=await window.storage.get('ltd_service',true);
-    if(r){
-      const newStr=r.value;
-      if(newStr!==lastServiceStr){lastServiceStr=newStr;serviceUsers=new Set(JSON.parse(newStr));updateServiceUI();}
-    }
-    // Sync ventes
-    const rs=await window.storage.get('ltd_sales');
-    if(rs){const newSales=JSON.parse(rs.value);if(newSales.length!==lastSalesLen){lastSalesLen=newSales.length;sales=newSales;updateKPIs();renderRecentTable();if(document.getElementById('page-caisse').classList.contains('active'))renderSalesTable();if(document.getElementById('page-compte').classList.contains('active'))renderMonCompte();if(document.getElementById('page-comptabilite').classList.contains('active'))renderComptaTable();if(document.getElementById('page-employes').classList.contains('active'))renderEmployees();}}
-    // Sync comptes
-    const ra=await window.storage.get('ltd_accounts');
-    if(ra){const newAccounts=JSON.parse(ra.value);if(newAccounts.length!==lastAccountsLen){lastAccountsLen=newAccounts.length;accounts=newAccounts;renderEmpDash();}}
-    // Sync runs
-    const rr=await window.storage.get('ltd_runs');
-    if(rr){const newRuns=JSON.parse(rr.value);if(newRuns.length!==runs.length){runs=newRuns;if(document.getElementById('page-run').classList.contains('active'))renderRuns();}}
-    // Sync service log
-    const rl=await window.storage.get('ltd_service_log',true);
-    if(rl){serviceLog=JSON.parse(rl.value);}
-  }catch(e){}
-}
-
-function startPolling(){
-  if(pollingInterval)clearInterval(pollingInterval);
-  lastSalesLen=sales.length;lastAccountsLen=accounts.length;
-  pollingInterval=setInterval(pollUpdates,5000);
-}
 
 // Bloquer l'impression
 window.addEventListener('beforeprint',e=>{e.preventDefault();e.stopPropagation();showToast('⚠ Impression désactivée',true);},true);
