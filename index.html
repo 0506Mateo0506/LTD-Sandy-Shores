@@ -658,13 +658,10 @@ const DEFAULT_ACCOUNTS=[
 // 3. Dans "Realtime Database" → Créez une base de données (mode test)
 // 4. Dans Paramètres du projet → Config web → Copiez les valeurs ci-dessous
 const FIREBASE_CONFIG = {
- apiKey: "AIzaSyAA9A5Dq9_fWGa35hqPRAiHuuW5rcP4Mjs",
-  authDomain: "ltd-sandy-shores.firebaseapp.com",
-  databaseURL: "https://ltd-sandy-shores-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "ltd-sandy-shores",
-  storageBucket: "ltd-sandy-shores.firebasestorage.app",
-  messagingSenderId: "519833959484",
-  appId: "1:519833959484:web:6c1c57e1afb7ef827e5739"
+  apiKey: "REMPLACER_PAR_VOTRE_API_KEY",
+  authDomain: "REMPLACER_PAR_VOTRE_PROJECT.firebaseapp.com",
+  databaseURL: "https://REMPLACER_PAR_VOTRE_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "REMPLACER_PAR_VOTRE_PROJECT",
 };
 // Règles Firebase à mettre dans "Realtime Database → Règles":
 // { "rules": { ".read": true, ".write": true } }
@@ -738,46 +735,53 @@ async function saveServiceUsers(){await dbSet('service', [...serviceUsers]);}
 
 // ===== CHARGEMENT PRINCIPAL =====
 async function loadAll(){
-  document.getElementById('loading-overlay').querySelector('div:last-child').textContent = 'Connexion à la base de données...';
+  try {
+    document.getElementById('loading-overlay').querySelector('div:last-child').textContent = 'Connexion à la base de données...';
+  } catch(e){}
 
-  await initFirebase();
+  try { await initFirebase(); } catch(e){}
 
-  // Charger toutes les données
-  const [g, p, a, s, st, r, su, sl] = await Promise.all([
-    dbGet('grades'), dbGet('products'), dbGet('accounts'), dbGet('sales'),
-    dbGet('stock'), dbGet('runs'), dbGet('service'), dbGet('service_log')
-  ]);
+  // Charger toutes les données (une par une pour éviter les erreurs en cascade)
+  let g=null,p=null,a=null,s=null,st=null,r=null,su=null,sl=null;
+  try{g=await dbGet('grades');}catch(e){}
+  try{p=await dbGet('products');}catch(e){}
+  try{a=await dbGet('accounts');}catch(e){}
+  try{s=await dbGet('sales');}catch(e){}
+  try{st=await dbGet('stock');}catch(e){}
+  try{r=await dbGet('runs');}catch(e){}
+  try{su=await dbGet('service');}catch(e){}
+  try{sl=await dbGet('service_log');}catch(e){}
 
-  if (g) GRADES = g;
-  if (p) PRODUCTS = p;
+  if(g) GRADES=g;
+  if(p) PRODUCTS=p;
 
-  accounts = a || [...DEFAULT_ACCOUNTS];
-  if (!accounts.length) { accounts = [...DEFAULT_ACCOUNTS]; await saveAccounts(); }
-  accounts.forEach(ac => { if (!ac.joinDate) ac.joinDate = new Date().toISOString(); });
+  accounts=a||[...DEFAULT_ACCOUNTS];
+  if(!accounts.length){accounts=[...DEFAULT_ACCOUNTS];await saveAccounts();}
+  accounts.forEach(ac=>{if(!ac.joinDate)ac.joinDate=new Date().toISOString();});
 
-  sales = s || [];
-  runs = r || [];
-  serviceUsers = new Set(su || []);
-  serviceLog = sl || [];
+  sales=s||[];
+  runs=r||[];
+  serviceUsers=new Set(su||[]);
+  serviceLog=sl||[];
 
-  if (!st) {
-    stockData = PRODUCTS.map(p => ({name:p.name,qty:0,seuil:5,sellPrice:p.price,cat:p.cat}));
+  if(!st){
+    stockData=PRODUCTS.map(p=>({name:p.name,qty:0,seuil:5,sellPrice:p.price,cat:p.cat}));
     await saveStock();
-  } else {
-    stockData = st;
+  }else{
+    stockData=st;
   }
 
   // Initialiser les listeners temps réel Firebase
-  setupRealtimeListeners();
+  try{setupRealtimeListeners();}catch(e){}
 
   // Afficher bannière si Firebase pas configuré
-  if (!db || FIREBASE_CONFIG.apiKey === 'REMPLACER_PAR_VOTRE_API_KEY') {
-    const banner = document.getElementById('firebase-banner');
-    if (banner) banner.style.display = 'flex';
+  if(!db||FIREBASE_CONFIG.apiKey==='REMPLACER_PAR_VOTRE_API_KEY'){
+    const banner=document.getElementById('firebase-banner');
+    if(banner)banner.style.display='flex';
   }
 
-  document.getElementById('loading-overlay').style.display = 'none';
-  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('loading-overlay').style.display='none';
+  document.getElementById('login-page').style.display='flex';
 }
 
 // ===== LISTENERS TEMPS RÉEL =====
@@ -1867,4 +1871,3 @@ loadAll();
 </script>
 </body>
 </html>
-
