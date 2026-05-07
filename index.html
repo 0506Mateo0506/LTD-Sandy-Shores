@@ -658,10 +658,10 @@ const DEFAULT_ACCOUNTS=[
 // 3. Dans "Realtime Database" → Créez une base de données (mode test)
 // 4. Dans Paramètres du projet → Config web → Copiez les valeurs ci-dessous
 const FIREBASE_CONFIG = {
-  apiKey: "REMPLACER_PAR_VOTRE_API_KEY",
-  authDomain: "REMPLACER_PAR_VOTRE_PROJECT.firebaseapp.com",
-  databaseURL: "https://REMPLACER_PAR_VOTRE_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "REMPLACER_PAR_VOTRE_PROJECT",
+  apiKey: "AIzaSyAA9A5Dq9_fWGa3ShqPRAiHuuW5rcP4Mjs",
+  authDomain: "ltd-sandy-shores.firebaseapp.com",
+  databaseURL: "https://ltd-sandy-shores-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "ltd-sandy-shores",
 };
 // Règles Firebase à mettre dans "Realtime Database → Règles":
 // { "rules": { ".read": true, ".write": true } }
@@ -669,8 +669,12 @@ const FIREBASE_CONFIG = {
 let db = null; // Firebase database reference
 
 async function initFirebase() {
+  // Ne pas tenter Firebase si pas configuré
+  if (FIREBASE_CONFIG.apiKey === 'REMPLACER_PAR_VOTRE_API_KEY') {
+    console.log('Firebase non configuré — mode localStorage uniquement');
+    return false;
+  }
   try {
-    // Charger Firebase SDK dynamiquement
     if (!window.firebase) {
       await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
       await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');
@@ -679,7 +683,7 @@ async function initFirebase() {
     db = firebase.database();
     return true;
   } catch(e) {
-    console.warn('Firebase indisponible, utilisation localStorage:', e);
+    console.warn('Firebase indisponible:', e);
     return false;
   }
 }
