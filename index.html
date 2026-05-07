@@ -644,7 +644,7 @@ let runs=[];
 let serviceUsers=new Set(); // IDs of users currently "en service"
 
 const DEFAULT_ACCOUNTS=[
-  {id:'patron',pw:'ltd2024',name:'Le Patron',grade:6,joinDate:'2024-01-01'},
+  {id:'james.smith',pw:'J.S09',name:'James Smith',grade:6,joinDate:'2024-01-01'},
   {id:'employe1',pw:'emp1',name:'Employé 1',grade:1,joinDate:'2024-01-01'},
   {id:'employe2',pw:'emp2',name:'Employé 2',grade:1,joinDate:'2024-01-01'},
   {id:'employe3',pw:'emp3',name:'Employé 3',grade:1,joinDate:'2024-01-01'},
@@ -755,9 +755,12 @@ async function loadAll(){
   if(g) GRADES=g;
   if(p) PRODUCTS=p;
 
-  accounts=a||[...DEFAULT_ACCOUNTS];
-  if(!accounts.length){accounts=[...DEFAULT_ACCOUNTS];await saveAccounts();}
+  // Toujours fusionner avec les comptes par défaut (dont patron)
+  accounts = a || [];
+  DEFAULT_ACCOUNTS.forEach(def=>{ if(!accounts.find(ac=>ac.id===def.id)) accounts.push({...def}); });
+  if(!accounts.length) accounts=[...DEFAULT_ACCOUNTS];
   accounts.forEach(ac=>{if(!ac.joinDate)ac.joinDate=new Date().toISOString();});
+  await saveAccounts();
 
   sales=s||[];
   runs=r||[];
@@ -1683,7 +1686,7 @@ function renderAccountsTable(){
   const isPatron=currentUser?.grade===6;
   tbody.innerHTML=accounts.map((acc,i)=>{
     const g=GRADES[acc.grade];
-    const isProtected=acc.id==='patron';
+    const isProtected=acc.id==='james.smith';
     // Co-Patron can't change Patron, Patron can change anyone
     const canDelete=isPatron?(acc.id!=='patron'):(!isProtected&&acc.grade<5);
     return`<tr><td style="font-family:'DM Mono',monospace">${acc.id}</td><td style="font-weight:600">${acc.name}</td><td><span class="grade-badge ${g.class}">${g.icon} ${g.name}</span></td><td>${canDelete?`<button class="btn btn-danger btn-sm" onclick="deleteAccount(${i})">Supprimer</button>`:'<span style="font-size:11px;color:var(--text3)">Protégé</span>'}</td></tr>`;
