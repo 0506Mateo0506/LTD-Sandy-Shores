@@ -1864,7 +1864,8 @@ function renderRuns(){
     const statusColor=r.status==='done'?'var(--green)':r.status==='active'?'var(--accent)':'var(--text2)';
     const statusLabel=r.status==='done'?'✅ Run Validé':r.status==='active'?'📦 Run Déposé':'⬜ En attente';
     // Photos avec zoom (fix 5)
-    const photosHtml=r.photos&&r.photos.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${r.photos.map(p=>`<img src="${p}" onclick="openPhotoZoom('${p}')" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:zoom-in" title="Cliquer pour agrandir">`).join('')}</div>`:'';\n    const canDelete=isAdmin;
+    const photosHtml=r.photos&&r.photos.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${r.photos.map(p=>`<img src="${p}" onclick="openPhotoZoom('${p}')" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:zoom-in" title="Cliquer pour agrandir">`).join('')}</div>`:'';
+    const canDelete=isAdmin;
     // Fix 4 & 10: tout le monde peut "déposer" son run (pending→active), seul admin peut valider (active→done)
     const isMyRun=r.createdBy===currentUser?.name||(r.members&&r.members.split(',').map(m=>m.trim()).includes(currentUser?.name));
     const canDepose=r.status==='pending'&&isMyRun; // Déposer le run
