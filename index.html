@@ -111,13 +111,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .badge-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
 .badge-yellow{background:rgba(234,179,8,0.15);color:#eab308;border:1px solid rgba(234,179,8,0.3);}
 .grade-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;}
-.grade-0{background:rgba(148,163,184,0.1);color:#94a3b8;border:1px solid rgba(148,163,184,0.2);}
+/* grade-0 = Vendeur (orange), grade-6 = Vendeur en Formation (gris), grade-4/5 = Co-Patron (violet), grade Patron = rouge */
+.grade-0{background:rgba(249,115,22,0.12);color:#f97316;border:1px solid rgba(249,115,22,0.3);}
 .grade-1{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
 .grade-2{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,0.2);}
 .grade-3{background:rgba(168,85,247,0.1);color:var(--purple);border:1px solid rgba(168,85,247,0.2);}
-.grade-4{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(232,160,32,0.3);}
+.grade-4{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.4);}
 .grade-5{background:rgba(168,85,247,0.1);color:var(--purple);border:1px solid rgba(168,85,247,0.2);}
-.grade-6{background:rgba(59,130,246,0.15);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+.grade-6{background:rgba(148,163,184,0.1);color:#94a3b8;border:1px solid rgba(148,163,184,0.25);}
 .stock-input{width:70px;padding:5px 8px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:13px;text-align:center;outline:none;}
 .search-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 .search-wrap{position:relative;flex:1;min-width:200px;}
@@ -195,7 +196,20 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .rapport-bar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
 .rapport-bar-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);min-width:70px;text-align:right;}
 .rapport-section{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-/* SALE DETAIL MODAL */
+/* FIN DE SERVICE rouge dans tableau de bord */
+.service-end-row td { color: var(--red) !important; }
+.service-end-row td:first-child { color: var(--red) !important; }
+
+/* EMPLOI DU TEMPS */
+.schedule-table-wrap{overflow-x:auto;}
+.schedule-table th{background:var(--bg);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--text2);}
+.schedule-name-cell{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;}
+.schedule-time-cell{font-family:'DM Mono',monospace;font-size:13px;}
+.schedule-end-cell{font-family:'DM Mono',monospace;font-size:13px;color:var(--red);font-weight:700;}
+.schedule-duration-cell{font-family:'DM Mono',monospace;font-size:13px;color:var(--green);}
+.show-more-btn{display:block;width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;text-align:center;transition:all 0.2s;}
+.show-more-btn:hover{border-color:var(--accent);color:var(--accent);}
+
 .sale-detail-img{width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:10px;}
 /* EMPLOYEE PROFILE MODAL */
 .emp-profile-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
@@ -265,6 +279,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <button class="nav-item" onclick="showPage('compte',this)"><span class="nav-icon">👤</span> Mon Compte</button>
       <button class="nav-item" onclick="showPage('caisse',this)"><span class="nav-icon">💰</span> Caisse</button>
       <button class="nav-item" onclick="showPage('run',this)"><span class="nav-icon">🚗</span> Run</button>
+      <button class="nav-item" onclick="showPage('planning',this)"><span class="nav-icon">🗓</span> Emploi du Temps</button>
       <div class="nav-section">GESTION</div>
       <button class="nav-item" onclick="showPage('stock',this)"><span class="nav-icon">📦</span> Stock</button>
       <button class="nav-item" onclick="showPage('produits',this)"><span class="nav-icon">🛍</span> Produits</button>
@@ -376,6 +391,22 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div class="card">
             <div class="card-header"><div class="card-title">📋 Journal du jour</div><button class="btn btn-danger btn-sm" id="clear-sales-btn" onclick="clearSales()">🗑 Vider</button></div>
             <div style="overflow-y:auto;max-height:580px"><table><thead><tr><th>H.</th><th>PRODUIT(S)</th><th>Q</th><th>TOTAL</th><th>VENDEUR</th><th></th></tr></thead><tbody id="sales-tbody"></tbody><tfoot><tr style="font-weight:700"><td colspan="3" style="padding:12px 16px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px">TOTAL</td><td style="padding:12px 16px;color:var(--accent);font-family:'Syne',sans-serif;font-size:16px;font-weight:800" id="total-ca-display">0 $</td><td colspan="2"></td></tr></tfoot></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPLOI DU TEMPS -->
+      <div class="page" id="page-planning">
+        <div class="page-header">
+          <div><div class="page-title">🗓 Emploi du Temps</div><div class="page-sub">Prises & fins de service · Durées</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 Planning des employés</div>
+            <span style="font-size:12px;color:var(--text2)" id="planning-count">—</span>
+          </div>
+          <div class="card-body" id="planning-body">
+            <div style="color:var(--text2);padding:20px;text-align:center">Aucune donnée de service disponible.</div>
           </div>
         </div>
       </div>
@@ -496,6 +527,22 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <!-- ADMIN -->
       <div class="page" id="page-admin">
         <div class="page-header"><div><div class="page-title">⚙️ Administration</div><div class="page-sub">Gestion des comptes · Grades · Permissions</div></div></div>
+        <!-- Boutons réinitialisation -->
+        <div class="card" style="margin-bottom:20px" id="admin-reset-card">
+          <div class="card-header"><div class="card-title">🔄 Réinitialisation des données</div></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Ces boutons effacent définitivement les données de l'onglet correspondant. Utiliser avec précaution.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-danger" onclick="resetData('dashboard')">🗑 Dashboard</button>
+              <button class="btn btn-danger" onclick="resetData('compte')">🗑 Mon Compte</button>
+              <button class="btn btn-danger" onclick="resetData('caisse')">🗑 Caisse</button>
+              <button class="btn btn-danger" onclick="resetData('run')">🗑 Run</button>
+              <button class="btn btn-danger" onclick="resetData('rapport')">🗑 Rapport</button>
+              <button class="btn btn-danger" onclick="resetData('comptabilite')">🗑 Comptabilité</button>
+              <button class="btn btn-danger" style="background:rgba(239,68,68,0.3);border-color:var(--red)" onclick="resetData('all')">⚠ TOUT RÉINITIALISER</button>
+            </div>
+          </div>
+        </div>
         <div class="two-col">
           <div class="card">
             <div class="card-header"><div class="card-title">🔐 Comptes Utilisateurs</div></div>
@@ -998,6 +1045,7 @@ function showPage(id,btn){
   if(id==='comptabilite')renderComptabilite();
   if(id==='admin')renderAdmin();
   if(id==='run')renderRuns();
+  if(id==='planning')renderPlanning();
 }
 
 // ===== DASHBOARD =====
@@ -1055,7 +1103,7 @@ function renderRecentTable(){
   const isAdmin=currentUser&&currentUser.grade>=5;
   const detailHead=document.getElementById('detail-col-head');
   if(detailHead)detailHead.style.display=isAdmin?'':'none';
-  // Mélanger ventes + événements de service
+  // Mélanger ventes + événements de service + runs
   let events=[];
   sales.forEach((s,realIdx)=>{
     const acc=accounts.find(a=>a.id===s.emp);
@@ -1069,15 +1117,45 @@ function renderRecentTable(){
   });
   // Ajouter événements de service depuis serviceLog
   (serviceLog||[]).forEach(ev=>{
+    const isEnd=ev.type==='off';
     events.push({
       time:ev.time,date:ev.date||'',
-      html:`<tr style="background:rgba(34,197,94,0.04)"><td style="color:var(--text2);font-family:'DM Mono',monospace">${ev.time}</td><td style="font-weight:600;color:${ev.type==='on'?'var(--green)':'var(--text2)'}">${ev.type==='on'?'🟢 Prise de service':'🔴 Fin de service'}</td><td>—</td><td>—</td><td>—</td><td style="color:var(--text2);font-size:12px">${ev.name}</td><td></td></tr>`
+      html:`<tr${isEnd?' class="service-end-row"':''}><td style="font-family:'DM Mono',monospace;${isEnd?'color:var(--red)':''}">${ev.time}</td><td style="font-weight:600;color:${ev.type==='on'?'var(--green)':'var(--red)'}">${ev.type==='on'?'🟢 Prise de service':'🔴 Fin de service'}</td><td>—</td><td>—</td><td>—</td><td style="font-size:12px;${isEnd?'color:var(--red)':''}">${ev.name}</td><td></td></tr>`
+    });
+  });
+  // Ajouter runs dans l'activité récente
+  (runs||[]).forEach(r=>{
+    const statusLabel=r.status==='done'?'✅ Run Validé':r.status==='active'?'📦 Run Déposé':'⬜ Run En attente';
+    const color=r.status==='done'?'var(--green)':r.status==='active'?'var(--accent)':'var(--text2)';
+    const date=r.date||'';
+    const time=r.date?new Date(r.date).toTimeString().slice(0,5):'-';
+    events.push({
+      time,date,
+      html:`<tr style="background:rgba(59,130,246,0.03)"><td style="color:var(--text2);font-family:'DM Mono',monospace">${time}</td><td style="font-weight:600;color:${color}">🚗 ${r.desc||'Run'}</td><td>—</td><td style="color:${color}">${statusLabel}</td><td>—</td><td style="color:var(--text2);font-size:12px">${r.createdBy||'—'}</td><td></td></tr>`
     });
   });
   events.sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
   if(!events.length){el.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:24px">Aucun événement</td></tr>';return;}
-  el.innerHTML=events.slice(0,30).map(e=>e.html).join('');
-  document.getElementById('recent-count').textContent=events.length+' événements';
+  // Afficher 10 lignes avec bouton "Afficher plus"
+  const LIMIT=10;
+  const total=events.length;
+  el.innerHTML=events.slice(0,LIMIT).map(e=>e.html).join('');
+  document.getElementById('recent-count').textContent=total+' événements';
+  // Bouton afficher plus si > 10
+  const tableWrap=el.closest('.table-wrap')||el.parentElement;
+  let showMoreBtn=document.getElementById('recent-show-more');
+  if(showMoreBtn)showMoreBtn.remove();
+  if(total>LIMIT){
+    showMoreBtn=document.createElement('button');
+    showMoreBtn.id='recent-show-more';
+    showMoreBtn.className='show-more-btn';
+    showMoreBtn.textContent=`Afficher plus (${total-LIMIT} restants)`;
+    showMoreBtn.onclick=function(){
+      el.innerHTML=events.map(e=>e.html).join('');
+      showMoreBtn.remove();
+    };
+    tableWrap.parentElement.appendChild(showMoreBtn);
+  }
 }
 
 function openSaleDetail(idx){
@@ -1138,16 +1216,31 @@ function renderMonCompte(){
   const myRunsActive=runs.filter(r=>r.status==='active'&&(r.createdBy===acc.name||(r.members&&r.members.split(',').map(m=>m.trim()).includes(acc.name))));
   const elRD=document.getElementById('mc-runs-done');if(elRD)elRD.textContent=myRunsDone.length;
   const elRA=document.getElementById('mc-runs-active');if(elRA)elRA.textContent=myRunsActive.length;
-  // Tableau activité
+  // Tableau activité (ventes + runs)
   const tbody=document.getElementById('mc-sales-table');
-  if(!mySales.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:24px">Aucune vente enregistrée</td></tr>';return;}
-  tbody.innerHTML=[...mySales].reverse().map(s=>{
+  // Construire une liste mixte ventes + runs
+  let myEvents=[];
+  [...mySales].forEach(s=>{
     const gains=Math.round(s.total*g.commission/100);
     const productLabel=Array.isArray(s.items)?s.items.map(i=>i.name+(i.qty>1?` ×${i.qty}`:'')).join(', '):s.product;
     const totalQty=Array.isArray(s.items)?s.items.reduce((a,i)=>a+i.qty,0):s.qty;
-    return`<tr><td style="color:var(--text2);font-family:'DM Mono',monospace">${s.time}</td><td style="font-weight:600">${productLabel}</td><td>${totalQty}</td><td style="color:var(--text2)">${fmtN(s.unit||0)} $</td><td style="color:var(--accent);font-weight:700">${fmt(s.total)}</td><td style="color:var(--green);font-weight:700">+${fmt(gains)}</td></tr>`;
-  }).join('');
+    myEvents.push({date:s.date||'',time:s.time||'',html:`<tr><td style="color:var(--text2);font-family:'DM Mono',monospace">${s.time}</td><td style="font-weight:600">🧾 ${productLabel}</td><td>${totalQty}</td><td style="color:var(--text2)">${fmtN(s.unit||0)} $</td><td style="color:var(--accent);font-weight:700">${fmt(s.total)}</td><td style="color:var(--green);font-weight:700">+${fmt(gains)}</td></tr>`});
+  });
+  // Ajouter les runs de cet employé
+  const myAllRuns=runs.filter(r=>r.createdBy===acc.name||(r.members&&r.members.split(',').map(m=>m.trim()).includes(acc.name)));
+  myAllRuns.forEach(r=>{
+    const statusLabel=r.status==='done'?'✅ Validé':r.status==='active'?'📦 Déposé':'⬜ En attente';
+    const color=r.status==='done'?'var(--green)':r.status==='active'?'var(--accent)':'var(--text2)';
+    const rDate=r.date||'';
+    const rTime=r.date?new Date(r.date).toTimeString().slice(0,5):'-';
+    myEvents.push({date:rDate,time:rTime,html:`<tr style="background:rgba(59,130,246,0.04)"><td style="color:var(--text2);font-family:'DM Mono',monospace">${rTime}</td><td style="font-weight:600;color:${color}">🚗 ${r.desc||'Run'}</td><td>—</td><td>—</td><td style="color:${color}">${statusLabel}</td><td>—</td></tr>`});
+  });
+  myEvents.sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+  if(!myEvents.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:24px">Aucune activité enregistrée</td></tr>';return;}
+  tbody.innerHTML=myEvents.map(e=>e.html).join('');
 }
+
+// ===== COMPTABILITÉ =====
 
 // ===== COMPTABILITÉ =====
 function renderComptabilite(){
@@ -1431,7 +1524,12 @@ function renderProducts(){
   const filtered=PRODUCTS.filter(p=>p.name.toLowerCase().includes(search)&&(prodCat==='TOUS'||p.cat===prodCat));
   const el=document.getElementById('product-grid');if(!el)return;
   const count=document.getElementById('prod-count-sub');if(count)count.textContent=PRODUCTS.length+' références · Prix en dollars GTA';
-  el.innerHTML=filtered.map(p=>`<div class="product-card" onclick="quickAddToSale('${p.name.replace(/'/g,"\\'")}',${p.price})"><div class="product-card-cat">${p.cat}</div><div class="product-card-name">${p.name}</div><div class="product-card-price">${fmtN(p.price)} $</div></div>`).join('')||'<div style="color:var(--text2);padding:20px">Aucun résultat</div>';
+  const isAdmin=currentUser&&currentUser.grade>=5;
+  el.innerHTML=filtered.map(p=>{
+    const idx=PRODUCTS.indexOf(p);
+    const delBtn=isAdmin?`<button onclick="event.stopPropagation();deleteProduct(${idx})" style="position:absolute;top:8px;right:8px;background:var(--red-dim);border:none;color:var(--red);border-radius:6px;width:22px;height:22px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center" title="Supprimer">✕</button>`:'';
+    return`<div class="product-card" style="position:relative" onclick="quickAddToSale('${p.name.replace(/'/g,"\\'")}',${p.price})"><div class="product-card-cat">${p.cat}</div><div class="product-card-name">${p.name}</div><div class="product-card-price">${fmtN(p.price)} $</div>${delBtn}</div>`;
+  }).join('')||'<div style="color:var(--text2);padding:20px">Aucun résultat</div>';
 }
 function quickAddToSale(name,price){
   showPage('caisse',document.querySelector('[onclick*="caisse"]'));
@@ -1482,7 +1580,22 @@ async function addNewProduct(){
   showToast('✓ Produit "'+name+'" créé');
 }
 
-// ===== EMPLOYEES / VENDEURS =====
+async function deleteProduct(idx){
+  openModal('Supprimer le produit',`Supprimer "${PRODUCTS[idx].name}" du catalogue ?`,async()=>{
+    const name=PRODUCTS[idx].name;
+    PRODUCTS.splice(idx,1);
+    await saveProducts();
+    // Supprimer du stock aussi
+    const si=stockData.findIndex(s=>s.name===name);
+    if(si>=0){stockData.splice(si,1);await saveStock();}
+    renderProducts();renderProdFilters();renderStock();
+    const el=document.getElementById('prod-filters');if(el)el.innerHTML='';
+    renderProdFilters();
+    showToast('✓ Produit "'+name+'" supprimé');
+  });
+}
+
+
 function renderGradesGrid(){
   const el=document.getElementById('grades-grid');if(!el)return;
   const colors=['#94a3b8','#94a3b8','#22c55e','#3b82f6','#3b82f6','#a855f7','#e8a020'];
@@ -1595,13 +1708,13 @@ function renderReports(){
     {label:'Vendeurs Actifs',val:activeVendeurs,color:'var(--purple)'},
   ].map(k=>`<div class="rapport-kpi"><div class="rapport-kpi-val" style="color:${k.color}">${k.val}</div><div class="rapport-kpi-label">${k.label}</div></div>`).join('');
 
-  // Ventes par vendeur
+  // Ventes par vendeur — TOP 5 seulement
   const vendEl=document.getElementById('rapport-vendeurs');
   if(vendEl){
     const vendData=accounts.map(acc=>{
       const empSales=sales.filter(s=>s.emp===acc.id);
       return{name:acc.name,grade:GRADES[acc.grade],nb:empSales.length,ca:empSales.reduce((a,s)=>a+s.total,0)};
-    }).sort((a,b)=>b.ca-a.ca);
+    }).sort((a,b)=>b.ca-a.ca).slice(0,5);
     const maxCA=vendData[0]?.ca||1;
     vendEl.innerHTML=vendData.map(v=>`
       <div class="rapport-chart-bar">
@@ -1662,18 +1775,24 @@ function renderReports(){
   if(horaireEl){
     const hourCounts={};
     for(let h=0;h<24;h++)hourCounts[h]=0;
-    sales.forEach(s=>{const h=parseInt(s.time?.split(':')[0]);if(!isNaN(h))hourCounts[h]++;});
+    sales.forEach(s=>{const h=parseInt((s.time||'').split(':')[0]);if(!isNaN(h)&&h>=0&&h<24)hourCounts[h]++;});
     const maxH=Math.max(...Object.values(hourCounts),1);
     const hours=Object.entries(hourCounts).filter(([h])=>parseInt(h)>=6&&parseInt(h)<=23);
-    horaireEl.innerHTML=`<div style="display:flex;align-items:flex-end;gap:6px;height:80px;padding-bottom:20px;position:relative">
-      ${hours.map(([h,count])=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-        <div style="flex:1;display:flex;align-items:flex-end;width:100%">
-          <div style="width:100%;background:${count>0?'linear-gradient(180deg,var(--accent),#b86010)':'var(--border)'};border-radius:4px 4px 0 0;height:${count/maxH*100}%;min-height:${count>0?'4':'0'}px;transition:height 0.5s"></div>
-        </div>
-        <div style="font-size:10px;color:var(--text3)">${h}h</div>
-      </div>`).join('')}
-    </div>
-    <div style="font-size:12px;color:var(--text2);margin-top:4px">${nbVentes} vente${nbVentes>1?'s':''} au total · Heures de 6h à 23h</div>`;
+    const totalVentes=sales.length;
+    const hasData=totalVentes>0;
+    if(!hasData){
+      horaireEl.innerHTML='<div style="color:var(--text2);padding:16px;text-align:center">Aucune vente enregistrée pour afficher l\'activité horaire.</div>';
+    }else{
+      horaireEl.innerHTML=`<div style="display:flex;align-items:flex-end;gap:4px;height:120px;padding-bottom:24px;position:relative;border-bottom:1px solid var(--border)">
+        ${hours.map(([h,count])=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%">
+          <div style="flex:1;display:flex;align-items:flex-end;width:100%;position:relative">
+            ${count>0?`<div title="${count} vente${count>1?'s':''}" style="width:100%;background:linear-gradient(180deg,var(--accent),#b86010);border-radius:4px 4px 0 0;height:${Math.max(count/maxH*100,4)}%;min-height:4px;transition:height 0.5s;cursor:default"></div>`:`<div style="width:100%;height:2px;background:var(--border);border-radius:2px;align-self:flex-end"></div>`}
+          </div>
+          <div style="font-size:9px;color:var(--text3);white-space:nowrap">${h}h</div>
+        </div>`).join('')}
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-top:8px">${totalVentes} vente${totalVentes>1?'s':''} au total · Heures de 6h à 23h</div>`;
+    }
   }
 
   // Distribution des prix
@@ -1738,6 +1857,14 @@ function openAccountProfile(empId){
         <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800">${acc.name}</div>
         <div style="font-size:12px;color:var(--text2)">Compte créé le ${joinDate}</div>
         <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace">${acc.id}</div>
+        <div style="margin-top:8px;background:var(--bg);border-radius:6px;padding:10px;font-size:12px;border:1px solid var(--border)">
+          <div style="color:var(--text2);margin-bottom:4px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px">IDENTIFIANT & MOT DE PASSE</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <span>🔑 ID : <code style="background:var(--bg2);padding:2px 6px;border-radius:4px;color:var(--accent)">${acc.id}</code></span>
+            <span>🔐 MDP : <code style="background:var(--bg2);padding:2px 6px;border-radius:4px;color:var(--green)" id="pw-reveal-${acc.id}">••••••</code>
+            <button onclick="document.getElementById('pw-reveal-${acc.id}').textContent=document.getElementById('pw-reveal-${acc.id}').textContent==='••••••'?'${acc.pw}':'••••••'" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--text2)">👁</button></span>
+          </div>
+        </div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
@@ -1841,6 +1968,95 @@ async function applyGrade(){
   renderAdmin();renderEmployees();renderEmpDash();
   showToast(`✓ Grade de ${acc.name} : ${GRADES[grade].icon} ${GRADES[grade].name}`);
   document.getElementById('grade-preview').style.display='none';
+}
+
+// ===== EMPLOI DU TEMPS =====
+function renderPlanning(){
+  const el=document.getElementById('planning-body');if(!el)return;
+  const countEl=document.getElementById('planning-count');
+  // Construire un planning depuis le serviceLog : regrouper par employé, prise + fin de service
+  const today=new Date().toDateString();
+  const todayEvents={};
+  // Initialiser avec tous les comptes
+  accounts.forEach(acc=>{todayEvents[acc.name]={name:acc.name,grade:acc.grade,sessions:[]};});
+  // Parser le serviceLog pour trouver les sessions d'aujourd'hui
+  const logByUser={};
+  (serviceLog||[]).forEach(ev=>{
+    const evDate=ev.date?new Date(ev.date).toDateString():'';
+    if(evDate!==today&&ev.date)return; // on prend tout si pas de date
+    if(!logByUser[ev.name])logByUser[ev.name]=[];
+    logByUser[ev.name].push(ev);
+  });
+  // Reconstituer les sessions (paires on/off)
+  const sessions=[];
+  Object.entries(logByUser).forEach(([name,evts])=>{
+    const sorted=[...evts].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    let prise=null;
+    sorted.forEach(ev=>{
+      if(ev.type==='on'){prise=ev;}
+      else if(ev.type==='off'&&prise){
+        // Calculer durée
+        const [h1,m1]=(prise.time||'00:00').split(':').map(Number);
+        const [h2,m2]=(ev.time||'00:00').split(':').map(Number);
+        let mins=(h2*60+m2)-(h1*60+m1);
+        if(mins<0)mins+=1440;
+        const dur=Math.floor(mins/60)+'h'+(mins%60?String(mins%60).padStart(2,'0'):'00');
+        const acc=accounts.find(a=>a.name===name);
+        sessions.push({name,grade:acc?acc.grade:1,prise:prise.time,fin:ev.time,dur,mins});
+        prise=null;
+      }
+    });
+    // Prise de service sans fin (encore en service)
+    if(prise){
+      const acc=accounts.find(a=>a.name===name);
+      sessions.push({name,grade:acc?acc.grade:1,prise:prise.time,fin:null,dur:'En cours',mins:0});
+    }
+  });
+  // Aussi afficher les utilisateurs actuellement en service sans log
+  [...serviceUsers].forEach(id=>{
+    const acc=accounts.find(a=>a.id===id);
+    if(!acc)return;
+    if(!sessions.find(s=>s.name===acc.name)){
+      sessions.push({name:acc.name,grade:acc.grade,prise:'—',fin:null,dur:'En service',mins:0});
+    }
+  });
+  if(countEl)countEl.textContent=sessions.length+' session'+(sessions.length>1?'s':'');
+  if(!sessions.length){
+    el.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center">Aucune session de service enregistrée aujourd\'hui.</div>';
+    return;
+  }
+  sessions.sort((a,b)=>(a.prise||'').localeCompare(b.prise||''));
+  el.innerHTML=`<div class="schedule-table-wrap"><table class="schedule-table" style="width:100%;border-collapse:collapse">
+    <thead><tr><th style="padding:10px 16px;text-align:left">EMPLOYÉ</th><th style="padding:10px 16px;text-align:left">GRADE</th><th style="padding:10px 16px;text-align:left">PRISE DE SERVICE</th><th style="padding:10px 16px;text-align:left">FIN DE SERVICE</th><th style="padding:10px 16px;text-align:left">DURÉE</th></tr></thead>
+    <tbody>${sessions.map(s=>{
+      const g=GRADES[s.grade]||GRADES[0];
+      const finCell=s.fin?`<td class="schedule-end-cell" style="padding:12px 16px">🔴 ${s.fin}</td>`:`<td style="padding:12px 16px;color:var(--green);font-family:'DM Mono',monospace">🟢 En service</td>`;
+      const durCell=s.dur==='En cours'||s.dur==='En service'?`<td style="padding:12px 16px;color:var(--accent);font-family:'DM Mono',monospace">⏱ ${s.dur}</td>`:`<td class="schedule-duration-cell" style="padding:12px 16px">⏱ ${s.dur}</td>`;
+      return`<tr style="border-bottom:1px solid rgba(42,54,80,0.5)">
+        <td class="schedule-name-cell" style="padding:12px 16px">${s.name}</td>
+        <td style="padding:12px 16px"><span class="grade-badge ${g.class}">${g.icon} ${g.name}</span></td>
+        <td class="schedule-time-cell" style="padding:12px 16px;color:var(--green)">🟢 ${s.prise}</td>
+        ${finCell}
+        ${durCell}
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+// ===== RÉINITIALISATION DES DONNÉES =====
+function resetData(tab){
+  const labels={dashboard:'le Tableau de Bord (ventes)',compte:'Mon Compte (ventes)',caisse:'la Caisse (ventes du jour)',run:'les Runs',rapport:'les Rapports (ventes)',comptabilite:'la Comptabilité (ventes)',all:'TOUTES les données'};
+  openModal('Réinitialiser','Effacer définitivement les données de '+( labels[tab]||tab)+' ?',async()=>{
+    if(tab==='dashboard'||tab==='caisse'||tab==='rapport'||tab==='comptabilite'||tab==='compte'){
+      sales=[];await saveSales();renderDashboard();renderMonCompte();renderComptaTable();renderReports();showToast('✓ Ventes réinitialisées');
+    }else if(tab==='run'){
+      runs=[];await saveRuns();renderRuns();renderMonCompte();showToast('✓ Runs réinitialisés');
+    }else if(tab==='all'){
+      sales=[];runs=[];serviceLog=[];
+      await saveSales();await saveRuns();await saveServiceLog();
+      renderDashboard();renderMonCompte();renderComptaTable();renderRuns();renderRecentTable();showToast('✓ Toutes les données réinitialisées');
+    }
+  });
 }
 
 // ===== RUN =====
