@@ -317,6 +317,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div class="stat-card" data-icon="📅"><div class="stat-label">Ventes cette semaine</div><div class="stat-value blue" id="mc-week-ventes">0</div></div>
           <div class="stat-card" data-icon="💰"><div class="stat-label">CA cette semaine</div><div class="stat-value" id="mc-week-ca">0 $</div></div>
           <div class="stat-card" data-icon="💵"><div class="stat-label">Gains cette semaine</div><div class="stat-value green" id="mc-week-gains">0 $</div></div>
+          <div class="stat-card" data-icon="✅"><div class="stat-label">Runs Validés</div><div class="stat-value green" id="mc-runs-done">0</div></div>
+          <div class="stat-card" data-icon="📦"><div class="stat-label">Runs en traitement</div><div class="stat-value" style="color:var(--accent)" id="mc-runs-active">0</div></div>
         </div>
         <div class="card">
           <div class="card-header"><div class="card-title">📋 Mon Activité Récente</div><span style="font-size:12px;color:var(--text2)" id="mc-total-label">0 ventes</span></div>
@@ -384,8 +386,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <button class="btn btn-primary" onclick="openNewRunModal()">+ Nouveau Run</button></div>
         <div class="stats-row">
           <div class="stat-card" data-icon="🚗"><div class="stat-label">Runs du jour</div><div class="stat-value blue" id="run-count">0</div></div>
-          <div class="stat-card" data-icon="✅"><div class="stat-label">Runs terminés</div><div class="stat-value green" id="run-done">0</div></div>
-          <div class="stat-card" data-icon="⏳"><div class="stat-label">En cours</div><div class="stat-value" style="color:var(--accent)" id="run-active">0</div></div>
+          <div class="stat-card" data-icon="✅"><div class="stat-label">Runs Validés</div><div class="stat-value green" id="run-done">0</div></div>
+          <div class="stat-card" data-icon="📦"><div class="stat-label">Runs Déposés</div><div class="stat-value" style="color:var(--accent)" id="run-active">0</div></div>
         </div>
         <div class="run-grid" id="run-grid">
           <div style="color:var(--text2);padding:20px;grid-column:1/-1">Aucun run enregistré. Cliquez sur "+ Nouveau Run" pour commencer.</div>
@@ -604,9 +606,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   <div class="modal">
     <div class="modal-title">🚗 Nouveau Run</div>
     <div class="form-grid">
-      <div class="form-group" style="grid-column:1/-1"><label class="form-label">Description / Destination</label><input type="text" class="form-input" id="run-desc" placeholder="Ex : Livraison Downtown"></div>
-      <div class="form-group"><label class="form-label">Vendeur(s)</label><input type="text" class="form-input" id="run-members" placeholder="Ex : Jean, Marie"></div>
-      <div class="form-group"><label class="form-label">Heure départ</label><input type="time" class="form-input" id="run-time"></div>
+      <div class="form-group" style="grid-column:1/-1"><label class="form-label">Description</label><input type="text" class="form-input" id="run-desc" placeholder="Ex : Livraison Downtown"></div>
+      <div class="form-group" style="grid-column:1/-1"><label class="form-label">Vendeur(s)</label><input type="text" class="form-input" id="run-members" placeholder="Ex : Jean, Marie"></div>
       <div class="form-group" style="grid-column:1/-1"><label class="form-label">Notes</label><input type="text" class="form-input" id="run-notes" placeholder="Informations supplémentaires..."></div>
       <div class="form-group" style="grid-column:1/-1"><label class="form-label">📷 Photos du run</label><input type="file" id="run-photos" accept="image/*" multiple class="form-input" style="padding:6px"><div class="photo-preview" id="run-photo-preview"></div></div>
     </div>
@@ -841,7 +842,22 @@ function setupRealtimeListeners() {
   });
 }
 
-function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('fr-FR');}
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString('fr-FR');
+  // Reset journal à 00h00
+  if(now.getHours()===0&&now.getMinutes()===0&&now.getSeconds()===0){
+    const lastReset=localStorage.getItem('ltd_last_journal_reset');
+    const today=now.toDateString();
+    if(lastReset!==today){
+      localStorage.setItem('ltd_last_journal_reset',today);
+      sales=[];saveSales();
+      serviceLog=[];saveServiceLog();
+      renderRecentTable();renderSalesTable();updateKPIs();
+      showToast('🕛 Journal réinitialisé — nouvelle journée');
+    }
+  }
+}
 setInterval(updateClock,1000);updateClock();
 
 const fmtN=n=>Math.round(n).toLocaleString('fr-FR');
@@ -1071,7 +1087,7 @@ function openSaleDetail(idx){
     `<div style="display:flex;justify-content:space-between;padding:6px 0"><span>${s.product} ×${s.qty}</span><span style="color:var(--accent)">${fmt(s.total)}</span></div>`;
   let photoHtml='';
   if(s.photos&&s.photos.length){
-    photoHtml='<div style="margin-top:12px"><div style="font-family:DM Mono,monospace;font-size:11px;color:var(--text2);margin-bottom:6px">PHOTOS</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+s.photos.map(p=>`<img src="${p}" class="sale-detail-img" style="max-width:120px;max-height:120px">`).join('')+'</div></div>';
+    photoHtml='<div style="margin-top:12px"><div style="font-family:DM Mono,monospace;font-size:11px;color:var(--text2);margin-bottom:6px">PHOTOS</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+s.photos.map(p=>`<img src="${p}" onclick="openPhotoZoom('${p}')" class="sale-detail-img" style="max-width:120px;max-height:120px;cursor:zoom-in" title="Cliquer pour agrandir">`).join('')+'</div></div>';
   }
   document.getElementById('sd-title').textContent='Vente — '+s.time;
   document.getElementById('sd-body').innerHTML=`
@@ -1117,6 +1133,11 @@ function renderMonCompte(){
   document.getElementById('mc-week-ca').textContent=fmt(weekCA);
   document.getElementById('mc-week-gains').textContent=fmt(weekGains);
   document.getElementById('mc-total-label').textContent=mySales.length+' ventes';
+  // Runs de cet employé (fix 8)
+  const myRunsDone=runs.filter(r=>r.status==='done'&&(r.createdBy===acc.name||(r.members&&r.members.split(',').map(m=>m.trim()).includes(acc.name))));
+  const myRunsActive=runs.filter(r=>r.status==='active'&&(r.createdBy===acc.name||(r.members&&r.members.split(',').map(m=>m.trim()).includes(acc.name))));
+  const elRD=document.getElementById('mc-runs-done');if(elRD)elRD.textContent=myRunsDone.length;
+  const elRA=document.getElementById('mc-runs-active');if(elRA)elRA.textContent=myRunsActive.length;
   // Tableau activité
   const tbody=document.getElementById('mc-sales-table');
   if(!mySales.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:24px">Aucune vente enregistrée</td></tr>';return;}
@@ -1249,21 +1270,16 @@ document.addEventListener('click',e=>{
 });
 
 function populateEmpSelect(){
-  const hiddenSel=document.getElementById('sale-emp');
-  const display=document.getElementById('sale-emp-display');
-  if(!hiddenSel||!display)return;
+  const empSelectGroup=document.getElementById('emp-select-group');
+  if(!empSelectGroup)return;
   const isAdmin=currentUser&&currentUser.grade>=5;
   if(isAdmin){
-    // Admin can pick any employee (tous les comptes)
-    const empSelectGroup=document.getElementById('emp-select-group');
-    if(empSelectGroup){
-      empSelectGroup.innerHTML=`<label class="form-label">Vendeur</label><select class="form-select" id="sale-emp" onchange="updateSalePreview()">${accounts.map(a=>`<option value="${a.id}">${a.name} — ${GRADES[a.grade].name}</option>`).join('')}</select>`;
-      if(currentUser)document.getElementById('sale-emp').value=currentUser.id;
-    }
+    // Admin (patron/co-patron) : peut choisir n'importe quel vendeur
+    empSelectGroup.innerHTML=`<label class="form-label">Vendeur</label><select class="form-select" id="sale-emp" onchange="updateSalePreview()">${accounts.map(a=>`<option value="${a.id}">${a.name} — ${GRADES[a.grade].name}</option>`).join('')}</select>`;
+    if(currentUser)document.getElementById('sale-emp').value=currentUser.id;
   }else{
-    // Non-admin: locked to own account
-    if(hiddenSel)hiddenSel.value=currentUser?.id||'';
-    if(display)display.value=currentUser?.name||'';
+    // Autres rôles : bloqué sur son propre compte mais peut quand même faire des ventes
+    empSelectGroup.innerHTML=`<label class="form-label">Vendeur</label><input type="text" class="form-input" id="sale-emp-display" readonly style="background:var(--bg3);cursor:not-allowed" value="${currentUser?.name||''}"><input type="hidden" id="sale-emp" value="${currentUser?.id||''}">`;
   }
   updateSalePreview();
 }
@@ -1693,13 +1709,81 @@ function renderAccountsTable(){
     const isProtected=acc.id==='james.smith';
     // Co-Patron can't change Patron, Patron can change anyone
     const canDelete=isPatron?(acc.id!=='patron'):(!isProtected&&acc.grade<5);
-    return`<tr><td style="font-family:'DM Mono',monospace">${acc.id}</td><td style="font-weight:600">${acc.name}</td><td><span class="grade-badge ${g.class}">${g.icon} ${g.name}</span></td><td>${canDelete?`<button class="btn btn-danger btn-sm" onclick="deleteAccount(${i})">Supprimer</button>`:'<span style="font-size:11px;color:var(--text3)">Protégé</span>'}</td></tr>`;
+    return`<tr style="cursor:pointer" onclick="openAccountProfile('${acc.id}')" title="Voir le compte de ${acc.name}"><td style="font-family:'DM Mono',monospace">${acc.id}</td><td style="font-weight:600">${acc.name} <span style="font-size:11px;color:var(--text3)">👁</span></td><td><span class="grade-badge ${g.class}">${g.icon} ${g.name}</span></td><td onclick="event.stopPropagation()">${canDelete?`<button class="btn btn-danger btn-sm" onclick="deleteAccount(${i})">Supprimer</button>`:'<span style="font-size:11px;color:var(--text3)">Protégé</span>'}</td></tr>`;
   }).join('');
 }
 
+// Fix 9: ouvre la vue "Mon Compte" d'un employé depuis l'admin
+function openAccountProfile(empId){
+  const acc=accounts.find(a=>a.id===empId);if(!acc)return;
+  const prevUser=currentUser;
+  // Temporairement afficher le compte de cet employé dans Mon Compte
+  const g=GRADES[acc.grade];
+  const mySales=sales.filter(s=>s.emp===acc.id);
+  const myCA=mySales.reduce((a,s)=>a+s.total,0);
+  const myGains=Math.round(myCA*g.commission/100);
+  const{mon,sun}=getWeekBounds();
+  const weekSales=mySales.filter(s=>{if(!s.date)return true;const d=new Date(s.date);return d>=mon&&d<=sun;});
+  const weekCA=weekSales.reduce((a,s)=>a+s.total,0);
+  const weekGains=Math.round(weekCA*g.commission/100);
+  const myRunsDone=runs.filter(r=>r.status==='done'&&(r.createdBy===acc.name||(r.members&&r.members.split(',').map(m=>m.trim()).includes(acc.name))));
+  const myRunsActive=runs.filter(r=>r.status==='active'&&(r.createdBy===acc.name||(r.members&&r.members.split(',').map(m=>m.trim()).includes(acc.name))));
+  // Construire le HTML de la modale
+  const joinDate=acc.joinDate?new Date(acc.joinDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'}):'—';
+  document.getElementById('ep-title').innerHTML=`<span class="grade-badge ${g.class}">${g.icon} ${g.name}</span> ${acc.name} — Compte complet`;
+  document.getElementById('ep-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#b86010);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#000">${acc.name.charAt(0)}</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800">${acc.name}</div>
+        <div style="font-size:12px;color:var(--text2)">Compte créé le ${joinDate}</div>
+        <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace">${acc.id}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--blue)">${mySales.length}</div><div style="font-size:11px;color:var(--text2)">Ventes totales</div></div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent)">${fmtN(myCA)} $</div><div style="font-size:11px;color:var(--text2)">CA Total</div></div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--green)">${fmtN(myGains)} $</div><div style="font-size:11px;color:var(--text2)">Gains (${g.commission}%)</div></div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--blue)">${weekSales.length}</div><div style="font-size:11px;color:var(--text2)">Ventes cette sem.</div></div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--green)">${myRunsDone.length}</div><div style="font-size:11px;color:var(--text2)">✅ Runs Validés</div></div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent)">${myRunsActive.length}</div><div style="font-size:11px;color:var(--text2)">📦 Runs en traitement</div></div>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:10px">Activité récente</div>
+    <div style="max-height:220px;overflow-y:auto">
+    <table><thead><tr><th>HEURE</th><th>PRODUIT(S)</th><th>TOTAL</th><th>GAINS</th></tr></thead><tbody>
+    ${mySales.length?[...mySales].reverse().slice(0,20).map(s=>{
+      const productLabel=Array.isArray(s.items)?s.items.map(i=>i.name+(i.qty>1?` ×${i.qty}`:'')).join(', '):s.product;
+      const myGain=Math.round(s.total*g.commission/100);
+      return`<tr><td style="color:var(--text2);font-size:12px">${s.time}</td><td style="font-size:12px">${productLabel}</td><td style="color:var(--accent)">${fmt(s.total)}</td><td style="color:var(--green)">${fmt(myGain)}</td></tr>`;
+    }).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text2);padding:16px">Aucune vente</td></tr>'}
+    </tbody></table></div>
+  `;
+  document.getElementById('emp-profile-overlay').classList.add('open');
+}
+
 function deleteAccount(i){
-  openModal('Supprimer le compte',`Supprimer "${accounts[i].name}" (${accounts[i].id}) ?`,async()=>{
-    accounts.splice(i,1);await saveAccounts();renderAdmin();showToast('Compte supprimé');
+  openModal('Supprimer le compte',`Supprimer "${accounts[i].name}" (${accounts[i].id}) ? Les ventes associées resteront dans le journal.`,async()=>{
+    const deletedId=accounts[i].id;
+    const deletedName=accounts[i].name;
+    // Marquer les ventes comme appartenant à un compte supprimé
+    sales.forEach(s=>{if(s.emp===deletedId){s.empName=(s.empName||deletedName)+' (supprimé)';}});
+    await saveSales();
+    // Retirer des serviceUsers
+    serviceUsers.delete(deletedId);
+    await saveServiceUsers();
+    accounts.splice(i,1);
+    await saveAccounts();
+    // Mise à jour immédiate de tous les sélecteurs et vues
+    renderAdmin();
+    renderEmployees();
+    renderEmpDash();
+    renderSalesTable();
+    renderRecentTable();
+    renderComptaTable();
+    populateEmpSelect();
+    populateGradeEmpSelect();
+    updateServiceUI();
+    showToast('Compte supprimé — synchronisé');
   });
 }
 
@@ -1761,51 +1845,70 @@ async function applyGrade(){
 
 // ===== RUN =====
 function renderRuns(){
-  document.getElementById('run-count').textContent=runs.length;
-  document.getElementById('run-done').textContent=runs.filter(r=>r.status==='done').length;
-  document.getElementById('run-active').textContent=runs.filter(r=>r.status==='active').length;
+  const allRuns=runs;
+  document.getElementById('run-count').textContent=allRuns.length;
+  document.getElementById('run-done').textContent=allRuns.filter(r=>r.status==='done').length;
+  document.getElementById('run-active').textContent=allRuns.filter(r=>r.status==='active').length;
   const el=document.getElementById('run-grid');if(!el)return;
   const isAdmin=currentUser&&currentUser.grade>=5;
-  // Filtrer : non-admin voit seulement ses propres runs
-  const visibleRuns=isAdmin?[...runs].reverse():[...runs].reverse().filter(r=>r.createdBy===currentUser?.name);
+  // Tous voient leurs runs + admins voient tout
+  const visibleRuns=isAdmin?[...allRuns].reverse():[...allRuns].reverse().filter(r=>{
+    if(r.createdBy===currentUser?.name)return true;
+    if(r.members&&r.members.split(',').map(m=>m.trim()).some(m=>m===currentUser?.name))return true;
+    return false;
+  });
   if(!visibleRuns.length){el.innerHTML='<div style="color:var(--text2);padding:20px;grid-column:1/-1">Aucun run enregistré. Cliquez sur "+ Nouveau Run" pour commencer.</div>';return;}
   el.innerHTML=visibleRuns.map((r)=>{
     const realIdx=runs.indexOf(r);
+    // Statuts renommés (fix 7)
     const statusColor=r.status==='done'?'var(--green)':r.status==='active'?'var(--accent)':'var(--text2)';
-    const statusLabel=r.status==='done'?'✅ Terminé':r.status==='active'?'🟠 En cours de traitement':'⬜ En attente';
-    // Photos
-    const photosHtml=r.photos&&r.photos.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${r.photos.map(p=>`<img src="${p}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">`).join('')}</div>`:'';
-    const canDelete=isAdmin;
-    const canFinish=isAdmin&&r.status!=='done';
-    const canStart=r.status==='pending'&&!isAdmin;
+    const statusLabel=r.status==='done'?'✅ Run Validé':r.status==='active'?'📦 Run Déposé':'⬜ En attente';
+    // Photos avec zoom (fix 5)
+    const photosHtml=r.photos&&r.photos.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${r.photos.map(p=>`<img src="${p}" onclick="openPhotoZoom('${p}')" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:zoom-in" title="Cliquer pour agrandir">`).join('')}</div>`:'';\n    const canDelete=isAdmin;
+    // Fix 4 & 10: tout le monde peut "déposer" son run (pending→active), seul admin peut valider (active→done)
+    const isMyRun=r.createdBy===currentUser?.name||(r.members&&r.members.split(',').map(m=>m.trim()).includes(currentUser?.name));
+    const canDepose=r.status==='pending'&&isMyRun; // Déposer le run
+    const canValider=isAdmin&&r.status==='active'; // Valider = admin seulement
     return`<div class="run-card">
       <div class="run-card-title">🚗 ${r.desc||'Run sans titre'} <span style="margin-left:auto;font-size:12px;color:${statusColor}">${statusLabel}</span></div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">👤 Créé par: ${r.createdBy||'—'} · ⏰ ${r.time||'—'}</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">👤 Créé par: ${r.createdBy||'—'}</div>
       ${r.members?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px">👥 ${r.members}</div>`:''}
       ${r.notes?`<div style="font-size:12px;color:var(--text2);background:var(--bg);border-radius:6px;padding:8px;margin-bottom:10px">${r.notes}</div>`:''}
       ${photosHtml}
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        ${canFinish?`<button class="btn btn-primary btn-sm" onclick="setRunStatus(${realIdx},'done')">✅ Terminer</button>`:''}
-        ${r.status==='pending'&&!isAdmin?`<button class="btn btn-outline btn-sm" onclick="setRunStatus(${realIdx},'active')">▶ Démarrer</button>`:''}
-        ${r.status==='pending'&&isAdmin?`<button class="btn btn-outline btn-sm" onclick="setRunStatus(${realIdx},'active')">▶ Démarrer</button>`:''}
+        ${canDepose?`<button class="btn btn-outline btn-sm" onclick="setRunStatus(${realIdx},'active')">📦 Run Déposé</button>`:''}
+        ${canValider?`<button class="btn btn-primary btn-sm" onclick="setRunStatus(${realIdx},'done')">✅ Run Validé</button>`:''}
         ${canDelete?`<button class="btn btn-danger btn-sm" onclick="deleteRun(${realIdx})">✕</button>`:''}
       </div>
     </div>`;
   }).join('');
 }
 
+// Zoom photo (fix 5)
+function openPhotoZoom(src){
+  let overlay=document.getElementById('photo-zoom-overlay');
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.id='photo-zoom-overlay';
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:zoom-out;backdrop-filter:blur(4px);';
+    overlay.onclick=()=>overlay.remove();
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML=`<img src="${src}" style="max-width:92vw;max-height:92vh;object-fit:contain;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.8)"><div style="position:absolute;top:20px;right:24px;font-size:28px;color:#fff;cursor:pointer;font-weight:700" onclick="document.getElementById('photo-zoom-overlay').remove()">✕</div>`;
+  overlay.style.display='flex';
+}
+
 function openNewRunModal(){
-  document.getElementById('run-time').value=new Date().toTimeString().slice(0,5);
   document.getElementById('run-modal-overlay').classList.add('open');
 }
 
 async function createRun(){
   const desc=document.getElementById('run-desc').value.trim();
   const members=document.getElementById('run-members').value.trim();
-  const time=document.getElementById('run-time').value;
   const notes=document.getElementById('run-notes').value.trim();
   if(!desc){showToast('⚠ Entrez une description',true);return;}
-  const run={desc,members,time,notes,status:'pending',createdBy:currentUser?.name||'',date:new Date().toISOString(),photos:runPhotos.length?[...runPhotos]:[]};
+  // Fix 7: pas de /destination ni heure de départ dans l'objet run
+  const run={desc,members,notes,status:'pending',createdBy:currentUser?.name||'',date:new Date().toISOString(),photos:runPhotos.length?[...runPhotos]:[]};
   runs.push(run);
   await saveRuns();
   document.getElementById('run-modal-overlay').classList.remove('open');
